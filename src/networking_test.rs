@@ -6,27 +6,25 @@ use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier2d::{plugin::{NoUserData, RapierPhysicsPlugin}, render::RapierDebugRenderPlugin};
 use bevy_renet::{transport::NetcodeServerPlugin, RenetServerPlugin};
+use std::env;
 
-use networking::*;
+use networking::{networking::*, *};
 use game_core::*;
 
+
+
+
+const SERVER_TPS: f64 = 1.; 
+
 fn main(){
-   let mut app = App::new();
-    app.add_plugins((
-        Networking,
-        DefaultPlugins.set(WindowPlugin {
-            primary_window: Some(Window {
-                title: "RUSTEROIDS server".into(),
-                ..default()
-            }),
-            ..default()
-        }),
-        EguiPlugin,
-        WorldInspectorPlugin::new(),
-        RenetServerPlugin,
-        NetcodeServerPlugin,
-        RapierPhysicsPlugin::<NoUserData>::default(),
-        RapierDebugRenderPlugin{enabled: false, ..default()}
-    ));
+    let mut app = App::new();
+    let args: Vec<String> = env::args().collect();
+    app.insert_resource(Time::<Fixed>::from_seconds(1. / SERVER_TPS));
+    if args.contains(&String::from("server")){
+        app.add_plugins(Server);
+    } else {
+        app.add_plugins(Client);
+    }
     app.run();
 }
+
