@@ -32,4 +32,6 @@ weighted_rand = "0.4.2"
 # GPU particles
 #bevy_hanabi = "0.8"
 
-
+[[bin]]
+name = "yaromain"
+path = "src/yaromain.rs"
