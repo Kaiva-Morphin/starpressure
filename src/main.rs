@@ -1,6 +1,4 @@
 fn main() {
     println!("Hello, world!");
-    // a
+    println!("спасибо боже за впн")
 }
-
-  
