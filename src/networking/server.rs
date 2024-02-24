@@ -12,11 +12,11 @@ pub fn init_server(
 ){
     let server = RenetServer::new(connection_config());
     commands.insert_resource(server);
-    let server_addr = vec!["127.0.0.1:6123".parse::<SocketAddr>().unwrap()];
+    let server_addr = vec!["37.110.11.176:6123".parse::<SocketAddr>().unwrap(), "192.168.0.100:6123".parse::<SocketAddr>().unwrap(), "127.0.0.1:6123".parse::<SocketAddr>().unwrap(), ];
     
     commands.insert_resource(RenetServerVisualizer::<200>::default());
     let current_time = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap();
-    let socket = UdpSocket::bind(server_addr[0]).unwrap();
+    let socket = UdpSocket::bind(server_addr[2]).unwrap();
     const GAME_PROTOCOL_ID: u64 = 0;
     let server_config = ServerConfig {
         max_clients: 16,
@@ -72,10 +72,16 @@ pub fn update_server(
 
     for client_id in server.clients_id().into_iter() {
         while let Some(message) = server.receive_message(client_id, Channels::Fast) {
+            
             let msg: ClientDataPacket = bincode::deserialize::<ClientDataPacket>(&message).unwrap();
             match msg {
                 ClientDataPacket::Inputs { keys: _keys } => {
 
+                }
+                ClientDataPacket::Echo{time} => {
+                    let msg = ServerDataPacket::Echo { time };
+                    let encoded: Vec<u8> = bincode::serialize(&msg).unwrap();
+                    server.send_message(client_id, Channels::Fast, encoded);
                 }
                 //_ => {}
             }

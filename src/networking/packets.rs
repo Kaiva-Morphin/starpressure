@@ -7,6 +7,7 @@ use crate::{networking::networking::ObjectData, InputKeys};
 #[derive(Serialize, Deserialize)]
 pub enum ServerDataPacket{
     Update{data: Vec<ObjectData>, tick: u64},
+    Echo{time:f32},
 }
 
 #[derive(Serialize, Deserialize)]
@@ -18,7 +19,8 @@ pub enum ServerGaranteedDataPacket{
 
 #[derive(Serialize, Deserialize)]
 pub enum ClientDataPacket{
-    Inputs{keys: InputKeys}
+    Inputs{keys: InputKeys},
+    Echo{time:f32},
 }
 
 #[derive(Serialize, Deserialize)]

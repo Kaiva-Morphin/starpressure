@@ -1,8 +1,8 @@
 use std::{net::UdpSocket, time::SystemTime};
 
-use bevy::prelude::*;
+use bevy::{prelude::*, tasks::futures_lite::future::yield_now};
 use bevy_renet::renet::{transport::{ClientAuthentication, NetcodeClientTransport}, RenetClient};
-use crate::{channels::{connection_config, Channels}, packets::{ClientGaranteedDataPacket, ServerDataPacket, ServerGaranteedDataPacket}};
+use crate::{channels::{connection_config, Channels}, packets::{ClientDataPacket, ClientGaranteedDataPacket, ServerDataPacket, ServerGaranteedDataPacket}};
 
 
 
@@ -41,7 +41,6 @@ pub fn update_client(
 ){
     //println!("connecting? {}", client.is_connecting());
     //println!("disconnected? {}", client.is_disconnected());
-    
     while let Some(message) = client.receive_message(Channels::Garanteed) {
         let msg: ServerGaranteedDataPacket = bincode::deserialize::<ServerGaranteedDataPacket>(&message).unwrap();
         match msg{
@@ -57,8 +56,16 @@ pub fn update_client(
     while let Some(message) = client.receive_message(Channels::Fast) {
         let msg: ServerDataPacket = bincode::deserialize::<ServerDataPacket>(&message).unwrap();
         match msg{
-            ServerDataPacket::Update{data: _data, tick: _tick} => {}
+            ServerDataPacket::Update{data: _data, tick: _tick} => {},
+            ServerDataPacket::Echo{time} => {println!("Delay: {}", time - SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs_f32())}
         }
     }
+}
+
+pub fn send_message(
+    mut client: ResMut<RenetClient>,
+){
+    let encoded: Vec<u8> = bincode::serialize(&ClientDataPacket::Echo { time: SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs_f32() }).unwrap();
+    client.send_message(Channels::Fast, encoded);
 }
 

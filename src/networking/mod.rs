@@ -47,6 +47,7 @@ impl Plugin for Client {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, init_client);
         app.add_systems(Update, update_client);
+        app.add_systems(FixedUpdate, send_message);
         app.add_plugins((DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "client".into(),
