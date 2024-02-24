@@ -4,20 +4,18 @@ pub const DEFAULT_D: f32 = 100.; // todo: may change idk
 
 #[derive(Component)]
 pub struct Tile {
-    pub d: f32,
     pub pos: [u32; 2]
+    // tile pos is relative to room
 }
 
 impl Tile {
     pub fn default() -> Self {
         Self {
-            d: 0.0,
             pos: [0, 0]
         }
     }
     pub fn new(pos: [u32; 2], d: f32) -> Self {
         Self {
-            d,
             pos,
         }
     }
@@ -49,11 +47,11 @@ pub struct Wall {
     pub neighbours: Neighbours, // the tiles/walls that are connected to this one
     pub hp: u8,
     pub durability: u32,
-    pub size: [u32; 2] // size in tiles
+    pub pos: [u32; 2],
 }
 
 impl Wall {
-    pub fn new(neighbours: Neighbours, hp: u8, durability: u32, size: [u32; 2]) -> Option<Self> {
+    pub fn new(neighbours: Neighbours, hp: u8, durability: u32, pos: [u32; 2]) -> Option<Self> {
         if neighbours.is_all_none() {
             return None;
         }
@@ -62,7 +60,7 @@ impl Wall {
             neighbours,
             hp,
             durability,
-            size,
+            pos,
         })
     }
 }

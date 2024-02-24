@@ -3799,6 +3799,7 @@ dependencies = [
  "rand_chacha",
  "renet_visualizer",
  "serde",
+ "serde_json",
  "weighted_rand",
 ]
 
