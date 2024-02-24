@@ -1,7 +1,6 @@
 use std::{collections::HashSet, time::Instant};
 
 use bevy::prelude::*;
-use bevy::input::mouse::MouseMotion;
 use bevy_rapier2d::prelude::*;
 use super::components::{BinMask, DensityMask, Depressurized, ForceMask, Neighbours, Room, Simulate, Tile, Wall, DEFAULT_D};
 
@@ -102,9 +101,7 @@ pub fn process_air_leak(
     keyboard_input: Res<ButtonInput<KeyCode>>,
 ) {
     if keyboard_input.just_released(KeyCode::KeyP) {
-        let now = Instant::now();
         update_air_flow(&mut rooms_q, vec![[0, 0]]);
-        println!("elapsed {:?}", now.elapsed().as_micros());
     }
 }
 
