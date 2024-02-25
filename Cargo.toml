@@ -15,7 +15,7 @@ opt-level = 1
 
 [dependencies]
 bevy = { version = "0.13.0", features = ["dynamic_linking", "bevy_dynamic_plugin", "multi-threaded", "serialize"]}
-bevy_rapier2d = { version = "0.25.0", features = [ "debug-render-2d", "parallel", "enhanced-determinism" ] }
+bevy_rapier2d = { version = "0.25.0", features = [ "debug-render-2d", "parallel", "enhanced-determinism", "serde-serialize" ] }
 bevy_egui = "0.25.0"
 bevy-inspector-egui = "0.23.2"
 # random
@@ -33,7 +33,6 @@ tokio = "1.36.0"
 # GPU particles
 #bevy_hanabi = "0.8"
 
-
 [[bin]]
 name = "net"
 path = "src/networking_test.rs"
@@ -41,3 +40,7 @@ path = "src/networking_test.rs"
 [[bin]]
 name = "test"
 path = "src/test.rs"
+
+[[bin]]
+name = "tilemap"
+path = "src/tilemap_test.rs"

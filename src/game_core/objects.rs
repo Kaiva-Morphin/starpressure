@@ -17,5 +17,3 @@ impl Object{
         return self.id
     }
 }
-
-

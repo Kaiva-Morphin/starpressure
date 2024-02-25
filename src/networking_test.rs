@@ -19,7 +19,7 @@ const SERVER_TPS: f64 = 1.;
 fn main(){
     let mut app = App::new();
     let args: Vec<String> = env::args().collect();
-    app.insert_resource(Time::<Fixed>::from_seconds(2.));
+    
     if args.contains(&String::from("server")){
         app.add_plugins(Server);
     } else {
