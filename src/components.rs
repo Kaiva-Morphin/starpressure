@@ -9,3 +9,13 @@ pub struct CursorPosition {
 pub struct CursorEntity {
     pub entity: Option<Entity>,
 }
+
+#[derive(Resource)]
+pub struct WindowSize {
+    // physical size
+    pub width: u32,
+    pub height: u32,
+}
+
+#[derive(Component)]
+pub struct Box;

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-mod tiles;
+pub mod tiles;
 mod constructor;
 mod components;
 mod systems;
@@ -15,8 +15,8 @@ pub struct ShipPlugin;
 impl Plugin for ShipPlugin {
     fn build(&self, app: &mut App) {
         app
-        .add_systems(OnEnter(AppState::InGame), (spawn_camera, spawn_box))
-        .add_systems(Update, (process_air_leak, apply_air_force, paint_walls, save_ship, load_ship)
+        .add_systems(Update, (
+            process_air_leak, apply_air_force, paint_walls, save_ship, load_ship, (init_ship, test).chain())
         .run_if(in_state(AppState::InGame)))
         ;
     }

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{components::CursorPosition, ship::{components::PlayerShip, init_room, init_tile, init_wall, tiles::components::{Room, Tile, Wall}}};
+use crate::{components::CursorPosition, ship::{components::PlayerShip, init_room, init_tile, init_wall, tiles::components::{Room, Tile, Wall, DEFAULT_D}}};
 
 use super::components::{RoomSave, ShipSave};
 
@@ -69,17 +69,36 @@ pub fn load_ship(
     }
 }
 
+pub fn init_ship(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+) {
+    //if keyboard_input.just_released(KeyCode::KeyI) {
+        let room = init_room(&mut commands, &asset_server, [2, 2]);
+        let tile = init_tile(&mut commands, &asset_server, [0, 0], DEFAULT_D);
+        commands.entity(room).add_child(tile);
+        commands.spawn(PlayerShip)
+        .insert(TransformBundle::default())
+        .insert(VisibilityBundle::default())
+        .add_child(room);
+    //}
+}
+
 pub fn place_tile(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     ship_q: Query<&Children, With<PlayerShip>>,
     rooms_q: Query<(&Room, &Children)>,
-    cursor_pos: Res<CursorPosition>
+    cursor_pos: Res<CursorPosition>,
+    mouse_button: Res<ButtonInput<MouseButton>>,
 ) {
     // todo: remove from Update scedule, appstate mb
-    let selected_room_id = 0;
-    let ship = ship_q.single();
-    let selected_room_entity = ship[selected_room_id];
-    let (room, children) = rooms_q.get(selected_room_entity).unwrap();
-    
+    if mouse_button.pressed(MouseButton::Left) {
+        let selected_room_id = 0;
+        let ship = ship_q.single();
+        let selected_room_entity = ship[selected_room_id];
+        let (room, children) = rooms_q.get(selected_room_entity).unwrap();
+        
+    }
 }

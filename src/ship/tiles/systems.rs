@@ -3,10 +3,12 @@ use std::{collections::HashSet, time::Instant};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use crate::ship::components::{PlayerShip, Ship};
-
+use crate::components::Box;
 use super::components::{BinMask, DensityMask, Depressurized, ForceMask, Neighbours, Room, Simulate, Tile, Wall, DEFAULT_D};
 
-const TILE_SIZE: f32 = 32.0; // in meters
+pub const TILE_SIZE: f32 = 32.0; // in meters
+pub const TILE_SIZE_USIZE: usize = TILE_SIZE as usize;
+pub const TILE_SIZE_U32: u32 = TILE_SIZE as u32;
 
 pub fn init_room (
     commands: &mut Commands,
@@ -212,31 +214,4 @@ pub fn paint_walls(
             sprite.color = Color::rgb(col, col, col);
         }
     }
-}
-// other trash
-
-pub fn spawn_camera(
-    mut commands: Commands,
-) {
-    commands.spawn(Camera2dBundle {
-        transform: Transform::from_translation(Vec3::new(3., 3., 0.,)),
-        ..default()
-    });
-}
-#[derive(Component)]
-pub struct Box;
-pub fn spawn_box(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-) {
-    commands.spawn((
-        SpriteBundle {
-            texture: asset_server.load("box.png"),
-            ..default()
-        },
-        Box,
-        RigidBody::Dynamic,
-        Velocity::default(),
-        Collider::cuboid(2., 2.),
-    ));
 }

@@ -3,7 +3,7 @@ use bevy_egui::egui::Shape;
 use bevy_rapier2d::prelude::*;
 use bevy::window::PrimaryWindow;
 
-use crate::components::{CursorEntity, CursorPosition};
+use crate::{components::{Box, CursorEntity, CursorPosition, WindowSize}, ship::{ tiles::systems::{TILE_SIZE, TILE_SIZE_U32, TILE_SIZE_USIZE}}};
 
 pub fn raycast(
     rapier_context: Res<RapierContext>,
@@ -39,24 +39,77 @@ pub fn raycast(
     }
 }
 
-pub fn draw_mesh(
+pub fn set_window_size(
+    window_q: Query<&Window, With<PrimaryWindow>>,
+    mut window_size: ResMut<WindowSize>
+) {
+    let window = window_q.single();
+    window_size.width = window.physical_width();
+    window_size.height = window.physical_height();
+}
+
+pub fn draw_penis(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
+    // ponos ebychii
     println!("hui");
     commands.spawn(
         MaterialMesh2dBundle {
-            mesh: Mesh2dHandle(meshes.add(Rectangle::new(0.1, 1000.))),
-            material: materials.add(ColorMaterial::default()),
+            mesh: Mesh2dHandle(meshes.add(Rectangle::new(111., 1000.))),
+            material: materials.add(ColorMaterial { color: Color::WHITE, texture: None }),
             ..default()
         }
     );
 }
 
-pub fn update(
+pub fn draw_net(
     mut gizmos: Gizmos,
-){
-    gizmos.line_2d(Vec2::Y , Vec2::splat(80.), Color::RED);
+    window_size: Res<WindowSize>,
+    camera_q: Query<&Camera>,
+) {
+    let camera = camera_q.single();
+    
+    let xe = window_size.width as f32;
+    let ye = window_size.height as f32;
+
+    let ndc = Vec4::new(- 1.,- 1.,0.,1.,);
+    let corner = (camera.projection_matrix().inverse() * ndc).xy();
+
+    for (x, _) in (0..window_size.width).step_by(TILE_SIZE_USIZE).enumerate() {
+        let xs = x as f32 * TILE_SIZE;
+        gizmos.line_2d(Vec2::new(xs, 0.,) + corner, Vec2::new(xs, ye) + corner, Color::WHITE);
+    }
+
+    for (y, _) in (0..window_size.height).step_by(TILE_SIZE_USIZE).enumerate() {
+        let ys = y as f32 * TILE_SIZE;
+        gizmos.line_2d(Vec2::new(0., ys,) + corner, Vec2::new(xe, ys) + corner, Color::WHITE);
+    }
+}
+
+pub fn spawn_camera(
+    mut commands: Commands,
+) {
+    commands.spawn(Camera2dBundle {
+        transform: Transform::from_translation(Vec3::new(3., 3., 0.,)),
+        ..default()
+    });
+}
+
+pub fn spawn_box(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    commands.spawn((
+        SpriteBundle {
+            texture: asset_server.load("box.png"),
+            ..default()
+        },
+        Box,
+        RigidBody::Dynamic,
+        Velocity::default(),
+        Collider::cuboid(2., 2.),
+    ));
 }
