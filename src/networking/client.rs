@@ -1,6 +1,8 @@
 use std::{net::UdpSocket, time::SystemTime};
 
 use bevy::{prelude::*, tasks::futures_lite::future::yield_now};
+
+use bevy_rapier2d::{dynamics::RigidBody, geometry::Collider};
 use bevy_renet::renet::{transport::{ClientAuthentication, NetcodeClientTransport}, RenetClient};
 use crate::{channels::{connection_config, Channels}, packets::{ClientDataPacket, ClientGaranteedDataPacket, ServerDataPacket, ServerGaranteedDataPacket}};
 
@@ -11,7 +13,7 @@ use crate::{channels::{connection_config, Channels}, packets::{ClientDataPacket,
 pub fn init_client(
     mut commands: Commands,
 ){
-    let server_addr = "127.0.0.1:6123".parse().unwrap();
+    let server_addr = "127.0.0.1:9100".parse().unwrap();
     let socket = UdpSocket::bind("127.0.0.1:0").unwrap();
 
     const GAME_PROTOCOL_ID: u64 = 0;
@@ -31,13 +33,19 @@ pub fn init_client(
     commands.insert_resource(RenetClient::new(connection_config()));
     commands.insert_resource(transport);
     println!("client created!");
+    commands.spawn(Camera2dBundle::default());
+    commands.spawn((
+        RigidBody::Dynamic,
+        Collider::cuboid(10., 10.),
+    ));
 }
 
 
 
 pub fn update_client(
     mut client: ResMut<RenetClient>,
-    mut transport: ResMut<NetcodeClientTransport>
+    mut transport: ResMut<NetcodeClientTransport>,
+    restime: Res<Time>
 ){
     //println!("connecting? {}", client.is_connecting());
     //println!("disconnected? {}", client.is_disconnected());
@@ -57,15 +65,16 @@ pub fn update_client(
         let msg: ServerDataPacket = bincode::deserialize::<ServerDataPacket>(&message).unwrap();
         match msg{
             ServerDataPacket::Update{data: _data, tick: _tick} => {},
-            ServerDataPacket::Echo{time} => {println!("Delay: {}", time - SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs_f32())}
+            ServerDataPacket::Echo{time} => {println!("Delay: {}", restime.elapsed_seconds() - time)}
         }
     }
 }
 
 pub fn send_message(
     mut client: ResMut<RenetClient>,
+    restime: Res<Time>
 ){
-    let encoded: Vec<u8> = bincode::serialize(&ClientDataPacket::Echo { time: SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs_f32() }).unwrap();
+    let encoded: Vec<u8> = bincode::serialize(&ClientDataPacket::Echo { time: restime.elapsed_seconds() }).unwrap();
     client.send_message(Channels::Fast, encoded);
 }
 

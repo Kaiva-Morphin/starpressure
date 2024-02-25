@@ -12,7 +12,7 @@ pub fn init_server(
 ){
     let server = RenetServer::new(connection_config());
     commands.insert_resource(server);
-    let server_addr = vec!["37.110.11.176:6123".parse::<SocketAddr>().unwrap(), "192.168.0.100:6123".parse::<SocketAddr>().unwrap(), "127.0.0.1:6123".parse::<SocketAddr>().unwrap(), ];
+    let server_addr = vec!["37.110.11.176:9100".parse::<SocketAddr>().unwrap(), "192.168.0.100:9100".parse::<SocketAddr>().unwrap(), "127.0.0.1:9100".parse::<SocketAddr>().unwrap(), ];
     
     commands.insert_resource(RenetServerVisualizer::<200>::default());
     let current_time = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap();

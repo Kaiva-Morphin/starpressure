@@ -49,10 +49,26 @@ fn main(){
     app.run();
 }
 
+
+
+
 fn init(
     mut commands: Commands,
+    
 ){
     commands.spawn(Camera2dBundle::default());
+
+    
+    //let l = Line2d
+    
+
+    /*
+    commands.spawn((
+        Collider::cuboid(1000., 10.),
+        RigidBody::Fixed,
+    )).insert(GlobalTransform::from(Transform::from_translation(Vec3{x: 0., y:-200., z:0.})));
+
+    
     commands.spawn((
         Collider::cuboid(1000., 10.),
         RigidBody::Fixed,
@@ -73,14 +89,14 @@ fn init(
             children.spawn(Collider::triangle(Vec2::from([130., 0.,]), Vec2::from([130., 130.,]), Vec2::from([0., 130.,])),)
                 // Position the collider relative to the rigid-body.
                 .insert(TransformBundle::from(Transform::from_xyz(-100.0, -100.0, 0.0)));
-        });
+        });*/
 }
 
 
 
 fn update(
-
+    mut gizmos: Gizmos,
 ){
-
+    gizmos.line_2d(Vec2::Y , Vec2::splat(80.), Color::RED);
 }
 

@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier2d::{plugin::{NoUserData, RapierPhysicsPlugin}, render::RapierDebugRenderPlugin};
-use bevy_renet::{renet::{ConnectionConfig, RenetClient}, transport::{NetcodeClientPlugin, NetcodeServerPlugin}, RenetClientPlugin, RenetServerPlugin};
+use bevy_renet::{renet::{ConnectionConfig, RenetClient, RenetServer}, transport::{NetcodeClientPlugin, NetcodeServerPlugin}, RenetClientPlugin, RenetServerPlugin};
 
 
 
@@ -13,7 +13,7 @@ mod server;
 mod client;
 
 use client::*;
-use renet_visualizer::RenetClientVisualizer;
+use renet_visualizer::{RenetClientVisualizer, RenetServerVisualizer};
 use server::*;
 
 
@@ -38,6 +38,8 @@ impl Plugin for Server {
         RapierPhysicsPlugin::<NoUserData>::default(),
         RapierDebugRenderPlugin{enabled: false, ..default()}
         ));
+        app.insert_resource(RenetServerVisualizer::<200>::default());     
+        app.insert_resource(RenetServer::new(ConnectionConfig::default()));
     }
 }
 
