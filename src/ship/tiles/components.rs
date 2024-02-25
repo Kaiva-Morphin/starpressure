@@ -1,8 +1,9 @@
 use bevy::prelude::*;
+use serde::{Serialize, Deserialize};
 
 pub const DEFAULT_D: f32 = 100.; // todo: may change idk
 
-#[derive(Component)]
+#[derive(Component, Serialize, Deserialize, Clone)]
 pub struct Tile {
     pub pos: [u32; 2]
     // tile pos is relative to room
@@ -21,6 +22,7 @@ impl Tile {
     }
 }
 
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Neighbours {
     pub top: Option<Entity>,
     pub bottom: Option<Entity>,
@@ -42,7 +44,7 @@ impl Neighbours {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Serialize, Deserialize, Clone)]
 pub struct Wall {
     pub neighbours: Neighbours, // the tiles/walls that are connected to this one
     pub hp: u8,

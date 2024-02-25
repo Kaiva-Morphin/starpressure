@@ -10,7 +10,7 @@ mod appstates;
 mod systems;
 mod components;
 
-use systems::raycast;
+use systems::*;
 
 
 fn main() {
@@ -41,6 +41,10 @@ fn main() {
         .add_plugins(ShipPlugin)
         // systems
         .add_systems(Update, menu_ph.run_if(in_state(AppState::InMenu)))
-        .add_systems(Update, raycast.run_if(in_state(AppState::InGame)))
+        .add_systems(Update, (
+            raycast
+        ).run_if(in_state(AppState::InGame)))
+
+        .add_systems(OnEnter(AppState::InGame), draw_mesh)
         .run()
 }

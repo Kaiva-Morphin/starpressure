@@ -1,4 +1,5 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, sprite::{MaterialMesh2dBundle, Mesh2dHandle}};
+use bevy_egui::egui::Shape;
 use bevy_rapier2d::prelude::*;
 use bevy::window::PrimaryWindow;
 
@@ -36,4 +37,26 @@ pub fn raycast(
             cursor_entity_res.entity = None;
         }
     }
+}
+
+pub fn draw_mesh(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
+    println!("hui");
+    commands.spawn(
+        MaterialMesh2dBundle {
+            mesh: Mesh2dHandle(meshes.add(Rectangle::new(0.1, 1000.))),
+            material: materials.add(ColorMaterial::default()),
+            ..default()
+        }
+    );
+}
+
+pub fn update(
+    mut gizmos: Gizmos,
+){
+    gizmos.line_2d(Vec2::Y , Vec2::splat(80.), Color::RED);
 }

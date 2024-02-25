@@ -1,23 +1,35 @@
 use serde::{Serialize, Deserialize};
 
+use crate::ship::tiles::components::{Tile, Wall};
+
+#[derive(Serialize, Deserialize)]
+pub struct RoomSave {
+    pub tiles: Vec<Tile>,
+    pub walls: Vec<Wall>,
+    pub size: [u32; 2],
+}
+
+impl RoomSave {
+    pub fn new() -> Self {
+        RoomSave {
+            tiles: vec![],
+            walls: vec![],
+            size: [0, 0],
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct ShipSave {
-    pub tiles: Vec<Vec<[u32; 2]>>,
-    pub walls: Vec<Vec<[u32; 2]>>,
-    pub sizes: Vec<[u32; 2]>
+    pub rooms: Vec<RoomSave>,
 }
 
 impl ShipSave {
     pub fn new(n_rooms: usize) -> Self {
-        let mut tiles = Vec::with_capacity(n_rooms);
-        for _ in 0..n_rooms { tiles.push(vec![]) }
-        let mut walls = Vec::with_capacity(n_rooms);
-        for _ in 0..n_rooms { walls.push(vec![]) }
-        let mut sizes = Vec::with_capacity(n_rooms);
+        let mut rooms = Vec::with_capacity(n_rooms);
+        for _ in 0..n_rooms { rooms.push(RoomSave::new()) }
         ShipSave {
-            tiles,
-            walls,
-            sizes,
+            rooms,
         }
     }
 }

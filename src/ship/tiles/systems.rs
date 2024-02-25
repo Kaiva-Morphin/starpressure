@@ -9,36 +9,13 @@ use super::components::{BinMask, DensityMask, Depressurized, ForceMask, Neighbou
 const TILE_SIZE: f32 = 32.0; // in meters
 
 pub fn init_room (
-    mut commands: &mut Commands,
+    commands: &mut Commands,
     asset_server: &Res<AssetServer>,
     size: [u32; 2],
 ) -> Entity {
-    let mut binmask = BinMask::new(size);
+    let binmask = BinMask::new(size);
     let densitymask = DensityMask::new(size);
     let forcemask = ForceMask::new(size);
-    //for y in 0..size[1] {
-    //    for x in 0..size[0] {
-    //        let tile_entity = init_tile(&mut commands, &asset_server, [x, y], 10.);
-    //        children.push(tile_entity);
-    //        if x == 0 {
-    //            children.push(init_wall(&mut commands, &asset_server, Vec3::new(-TILE_SIZE, y as f32 * TILE_SIZE, 0.), 
-    //        Neighbours {top: None, bottom: None, left: None, right: Some(tile_entity)}));
-    //        }
-    //        if x == size[0] - 1 {
-    //            children.push(init_wall(&mut commands, &asset_server, Vec3::new(TILE_SIZE * size[1] as f32, y as f32 * TILE_SIZE, 0.), 
-    //        Neighbours {top: None, bottom: None, left: Some(tile_entity), right: None}));
-    //        }
-    //        if y == 0 {
-    //            children.push(init_wall(&mut commands, &asset_server, Vec3::new(x as f32 * TILE_SIZE, -TILE_SIZE, 0.), 
-    //        Neighbours {top: Some(tile_entity), bottom: None, left: None, right: None}));
-    //        }
-    //        if y == size[1] - 1 {
-    //            children.push(init_wall(&mut commands, &asset_server, Vec3::new(x as f32 * TILE_SIZE, TILE_SIZE * size[0] as f32, 0.), 
-    //        Neighbours {top: None, bottom: Some(tile_entity), left: None, right: None}));
-    //        }
-    //        binmask.insert(x, y, true);
-    //    }
-    //}
     commands.spawn(binmask)
     .insert((
         densitymask,
@@ -75,18 +52,17 @@ pub fn init_tile(
 pub fn init_wall(
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,
-    pos: Vec3,
-    neighbours: Neighbours,
+    wall: Wall,
 ) -> Entity {
     let entity = commands.spawn(
     SpriteBundle {
         texture: asset_server.load("wall.png"),
-        transform: Transform::from_translation(pos),
+        transform: Transform::from_xyz(wall.pos[0] as f32, wall.pos[1] as f32, 0.),
         ..default()
         }
     )
     .insert((
-        Wall::new(neighbours, 100, 10, [1, 1]).unwrap(),
+        Wall::new(wall.neighbours, 100, 10, [1, 1]).unwrap(),
         Name::new("Wall"),
         Collider::cuboid(TILE_SIZE / 2., TILE_SIZE / 2.),
     ))
