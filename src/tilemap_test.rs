@@ -109,7 +109,7 @@ fn init(
         Ship,
     )).id();
 
-    TileMap::init_for(e, UVec2{x: 10, y: 10}, &mut commands, &collection); // todo: switch to bulder!
+    TileMap::init_for(e, UVec2{x: 100, y: 100}, &mut commands, &collection); // todo: switch to bulder!
 
     let e = commands.spawn((
         Name::from(String::from("SHIP2")),
@@ -136,7 +136,8 @@ fn init_tiles(
     for mut tilemap in ship_q.iter_mut(){
         i += 1;
         if i == 1{
-            let tileset_id = 1;
+
+            /*let tileset_id = 1;
             let mut pasted_position_id = 0;
             for i in 0..collection.tilesets.get(tileset_id).unwrap().tiles.len(){
                 let is_pasted = tilemap.set_tile(
@@ -147,7 +148,21 @@ fn init_tiles(
                     i
                 );
                 if is_pasted {pasted_position_id += 1;}
+            }*/
+            let start = std::time::Instant::now();
+            for x in 0..100{
+                for y in 0..100{
+                    tilemap.set_tile(
+                        &mut commands,
+                        UVec2 { x, y },
+                        &collection,
+                        1,
+                        0
+                    );
+                }
             }
+            println!("FILL TIME {}", start.elapsed().as_micros());
+
         } else {
             let mut set_tile = |x: u32, y: u32, tile_id: usize|{
                 tilemap.set_tile(
@@ -183,7 +198,7 @@ fn update(
     buttons: Res<ButtonInput<MouseButton>>,
     collection: Res<TileSetCollection>
 ){
-    if buttons.pressed(MouseButton::Left) || buttons.pressed(MouseButton::Right) {
+    if buttons.just_pressed(MouseButton::Left) || buttons.pressed(MouseButton::Right) {
         let (camera, camera_transform) = q_camera.single();
         let window = q_window.single();
         if let Some(world_position) = window.cursor_position()
@@ -196,8 +211,8 @@ fn update(
                 let size = tilemap.size() * 64;
                 let size = Vec2::from([size.x as f32, size.y as f32]);
 
-                let mut set_tile = |x: u32, y: u32, tileset_id: usize, tile_id: usize|{
-                    tilemap.set_tile(
+                let mut set_tile = |x: u32, y: u32, tileset_id: usize, tile_id: usize| -> bool{
+                    return tilemap.set_tile(
                         &mut commands,
                         UVec2 { x, y },
                         &collection,
@@ -213,9 +228,14 @@ fn update(
                     if cell.x >= 0. && cell.y >= 0. && cell.x <= size.x && cell.y <= size.y{
                         let cell_pos = UVec2{x: cell.x as u32, y: cell.y as u32};
                         if buttons.pressed(MouseButton::Left){
-                            set_tile(cell_pos.x, cell_pos.y, 1, 0);
+                            let start = std::time::Instant::now();
+                            println!("{}", set_tile(cell_pos.x, cell_pos.y, 1, 16));
+                            println!("{}", start.elapsed().as_micros());
+
                         } else {
-                            tilemap.remove_tile(cell_pos, &collection, &mut commands); // 0 0 is air
+
+                            println!("{}", tilemap.remove_tile(cell_pos, &collection, &mut commands)); // 0 0 is air
+
                         }
                     } 
                 }

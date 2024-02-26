@@ -1,4 +1,4 @@
-use bevy::{asset::{AssetServer, Assets, Handle}, core::Name, ecs::{bundle::Bundle, component::Component, entity::Entity, system::{Commands, Res, ResMut, Resource}, world::World}, gizmos::gizmos::Gizmos, hierarchy::{BuildChildren, ChildBuilder}, log::warn, math::{IVec2, UVec2, Vec2, Vec3, Vec4}, prelude::default, render::{color::Color, render_asset::RenderAssetUsages, render_resource::{Extent3d, Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages}, texture::{CompressedImageFormats, Image, ImageSampler, ImageType}}, sprite::{SpriteSheetBundle, TextureAtlas, TextureAtlasLayout}, transform::components::Transform, utils::hashbrown::HashMap};
+use bevy::{asset::{AssetServer, Assets, Handle}, core::Name, ecs::{bundle::Bundle, component::Component, entity::Entity, system::{Commands, Res, ResMut, Resource}, world::World}, gizmos::gizmos::Gizmos, hierarchy::{BuildChildren, ChildBuilder}, log::warn, math::{IVec2, UVec2, Vec2, Vec3, Vec4}, prelude::default, render::{color::Color, render_asset::RenderAssetUsages, render_resource::{Extent3d, Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages}, texture::{CompressedImageFormats, Image, ImageSampler, ImageType}}, sprite::{Sprite, SpriteSheetBundle, TextureAtlas, TextureAtlasLayout}, transform::components::Transform, utils::hashbrown::HashMap};
 
 /*
 pub struct TileCollisionShapes{
@@ -145,11 +145,11 @@ impl TileSetCollection{
 pub struct TileMap{ // todo: tilemap ship bundle!
     size: UVec2, // left down is 0, 0 corner
     tile_entities: Vec<Vec<Entity>>, 
-    tile_ids: Vec<Vec<(usize, usize)>>
+    tile_ids: Vec<Vec<(usize, usize)>>,
+
     //bg_tiles: Vec<Vec<usize>>,
 }
 
-#[allow(dead_code)]
 impl TileMap{
     pub fn init_for(e: Entity, size: UVec2, commands: &mut Commands, collection: &TileSetCollection){ // todo: switch to bulder!
         let mut tile_entities = vec![];
@@ -220,25 +220,19 @@ impl TileMap{
     ) -> bool {
         let tileset = collection.tilesets.get(tileset_id).unwrap();
         let tile = collection.get_tile(tileset_id, tile_id).unwrap();
-        let e = self.tile_entities.get(position.x as usize).unwrap().get(position.y as usize).unwrap();
+        //println!("{}", position );
+
+        let e = if let Some(row) = self.tile_entities.get(position.x as usize){
+            row.get(position.y as usize).unwrap().clone()
+        } else {
+            warn!("something wrong!");
+            return false;
+        };
+
         match tile{
             Tile::Singletile => {
                 if let Some(tile) = self.get_tile(position) {if *tile != (0, 0) {return false}};
-                commands.entity(*e).insert(
-                    SpriteSheetBundle {
-                        transform: Transform {
-                            scale: Vec3::splat(8.0),
-                            translation: Vec3{x: position.x as f32 * 64., y: position.y as f32 * 64., z: 0.},
-                            ..default()
-                        },
-                        texture: tileset.texture.clone(), // ????
-                        atlas: TextureAtlas {
-                            index: tile_id,
-                            layout: tileset.layout.clone(), // ????
-                        },
-                        ..default()
-                    }
-                );
+                self.set_texture(commands, e, (position.x as f32 * 64., position.y as f32 * 64.), 0, tileset);
                 self.tile_ids.get_mut(position.x as usize).unwrap().insert(position.y as usize, (tileset_id, tile_id));
                 return true;
             }
@@ -249,47 +243,19 @@ impl TileMap{
             Tile::MultitileOrigin { parts_offsets_ids } => {
                 for (offset, id) in parts_offsets_ids.iter(){
                     let part_pos = IVec2{x: position.x as i32 + offset.x, y: position.y as i32 + offset.y};
-                    if let Some(tile) = self.get_tile(UVec2 { x: part_pos.x as u32, y: part_pos.y as u32 }) {if *tile != (0, 0) {return false}};
+                    //if let Some(tile) = self.get_tile(UVec2 { x: part_pos.x as u32, y: part_pos.y as u32 }) {if *tile != (0, 0) {return false}};
                     if !self.in_bounds_i(&part_pos){return false}
                 }
 
                 for (offset, id) in parts_offsets_ids.iter(){
                     let part_pos = IVec2{x: position.x as i32 + offset.x, y: position.y as i32 + offset.y};
                     if self.in_bounds_i(&part_pos){
-                        let e = self.tile_entities.get(part_pos.x as usize).unwrap().get(part_pos.y as usize).unwrap();
-                        commands.entity(*e).insert(
-                            SpriteSheetBundle {
-                                transform: Transform {
-                                    scale: Vec3::splat(8.0),
-                                    translation: Vec3{x: part_pos.x as f32 * 64., y: part_pos.y as f32 * 64., z: 0.},
-                                    ..default()
-                                },
-                                texture: tileset.texture.clone(), // ????
-                                atlas: TextureAtlas {
-                                    index: *id,
-                                    layout: tileset.layout.clone(), // ????
-                                },
-                                ..default()
-                            }
-                        );
+                        let e = self.tile_entities.get(part_pos.x as usize).unwrap().get(part_pos.y as usize).unwrap().clone();
+                        self.set_texture(commands, e, (part_pos.x as f32 * 64., part_pos.y as f32 * 64.), *id, tileset);
                         self.tile_ids.get_mut(part_pos.x as usize).unwrap().insert(part_pos.y as usize, (tileset_id, *id));
                     }
                 }
-                commands.entity(*e).insert(
-                    SpriteSheetBundle {
-                        transform: Transform {
-                            scale: Vec3::splat(8.0),
-                            translation: Vec3{x: position.x as f32 * 64., y: position.y as f32 * 64., z: 0.},
-                            ..default()
-                        },
-                        texture: tileset.texture.clone(), // ????
-                        atlas: TextureAtlas {
-                            index: tile_id,
-                            layout: tileset.layout.clone(), // ????
-                        },
-                        ..default()
-                    }
-                );
+                self.set_texture(commands, e, (position.x as f32 * 64., position.y as f32 * 64.), tile_id, tileset);
                 self.tile_ids.get_mut(position.x as usize).unwrap().insert(position.y as usize, (tileset_id, tile_id));
                 return true;
             }
@@ -317,28 +283,14 @@ impl TileMap{
         collection: &TileSetCollection,
         commands: &mut Commands
     ) -> bool {
-        let e = self.tile_entities.get(position.x as usize).unwrap().get(position.y as usize).unwrap();
+        let e = self.tile_entities.get(position.x as usize).unwrap().get(position.y as usize).unwrap().clone();
         let tile_id = self.tile_ids.get(position.x as usize).unwrap().get(position.y as usize).unwrap();
         if *tile_id == (0, 0) {return false;}
         let tile = collection.get_tile(tile_id.0, tile_id.1).unwrap();
         let tileset = collection.tilesets.get(0).unwrap();
         match tile{
             Tile::Singletile => {
-                commands.entity(*e).insert(
-                    SpriteSheetBundle {
-                        transform: Transform {
-                            scale: Vec3::splat(8.0),
-                            translation: Vec3{x: position.x as f32 * 64., y: position.y as f32 * 64., z: 0.},
-                            ..default()
-                        },
-                        texture: tileset.texture.clone(), // ????
-                        atlas: TextureAtlas {
-                            index: 0,
-                            layout: tileset.layout.clone(), // ????
-                        },
-                        ..default()
-                    }
-                );
+                self.set_texture(commands, e, (position.x as f32 * 64., position.y as f32 * 64.), 0, tileset);
                 self.tile_ids.get_mut(position.x as usize).unwrap().insert(position.y as usize, (0, 0));
                 return true;
             }
@@ -351,40 +303,13 @@ impl TileMap{
                         for (offset, id) in parts_offsets_ids.iter(){
                             let part_pos = IVec2{x: position.x as i32 + offset.x, y: position.y as i32 + offset.y};
                             if self.in_bounds_i(&part_pos){
-                                let e = self.tile_entities.get(part_pos.x as usize).unwrap().get(part_pos.y as usize).unwrap();
-                                commands.entity(*e).insert(
-                                    SpriteSheetBundle {
-                                        transform: Transform {
-                                            scale: Vec3::splat(8.0),
-                                            translation: Vec3{x: part_pos.x as f32 * 64., y: part_pos.y as f32 * 64., z: 0.},
-                                            ..default()
-                                        },
-                                        texture: tileset.texture.clone(), // ????
-                                        atlas: TextureAtlas {
-                                            index: 0,
-                                            layout: tileset.layout.clone(), // ????
-                                        },
-                                        ..default()
-                                    }
-                                );
+                                let e = self.tile_entities.get(part_pos.x as usize).unwrap().get(part_pos.y as usize).unwrap().clone();
+                                self.set_texture(commands, e, (part_pos.x as f32 * 64., part_pos.y as f32 * 64.), 0, tileset);
                                 self.tile_ids.get_mut(part_pos.x as usize).unwrap().insert(part_pos.y as usize, (0, 0));
                             }
                         }
-                        commands.entity(*e).insert(
-                            SpriteSheetBundle {
-                                transform: Transform {
-                                    scale: Vec3::splat(8.0),
-                                    translation: Vec3{x: position.x as f32 * 64., y: position.y as f32 * 64., z: 0.},
-                                    ..default()
-                                },
-                                texture: tileset.texture.clone(), // ????
-                                atlas: TextureAtlas {
-                                    index: 0,
-                                    layout: tileset.layout.clone(), // ????
-                                },
-                                ..default()
-                            }
-                        );
+                        self.set_texture(commands, e, (position.x as f32 * 64., position.y as f32 * 64.), 0, tileset);
+                        self.tile_ids.get_mut(position.x as usize).unwrap().insert(position.y as usize, (0, 0));
                     }
                     _ => {return false}
                 }
@@ -394,44 +319,33 @@ impl TileMap{
                 for (offset, id) in parts_offsets_ids.iter(){
                     let part_pos = IVec2{x: position.x as i32 + offset.x, y: position.y as i32 + offset.y};
                     if self.in_bounds_i(&part_pos){
-                        let e = self.tile_entities.get(part_pos.x as usize).unwrap().get(part_pos.y as usize).unwrap();
-                        commands.entity(*e).insert(
-                            SpriteSheetBundle {
-                                transform: Transform {
-                                    scale: Vec3::splat(8.0),
-                                    translation: Vec3{x: part_pos.x as f32 * 64., y: part_pos.y as f32 * 64., z: 0.},
-                                    ..default()
-                                },
-                                texture: tileset.texture.clone(), // ????
-                                atlas: TextureAtlas {
-                                    index: 0,
-                                    layout: tileset.layout.clone(), // ????
-                                },
-                                ..default()
-                            }
-                        );
-                        self.tile_ids.get_mut(part_pos.x as usize).unwrap().insert(part_pos.y as usize, (0, 0));
+                        let e = self.tile_entities.get(part_pos.x as usize).unwrap().get(part_pos.y as usize).unwrap().clone();
+                        self.set_texture(commands, e, (position.x as f32 * 64., position.y as f32 * 64.), 0, tileset);
+                        self.tile_ids.get_mut(position.x as usize).unwrap().insert(position.y as usize, (0, 0));
                     }
                 }
-                commands.entity(*e).insert(
-                    SpriteSheetBundle {
-                        transform: Transform {
-                            scale: Vec3::splat(8.0),
-                            translation: Vec3{x: position.x as f32 * 64., y: position.y as f32 * 64., z: 0.},
-                            ..default()
-                        },
-                        texture: tileset.texture.clone(), // ????
-                        atlas: TextureAtlas {
-                            index: 0,
-                            layout: tileset.layout.clone(), // ????
-                        },
-                        ..default()
-                    }
-                );
+                self.set_texture(commands, e, (position.x as f32 * 64., position.y as f32 * 64.), 0, tileset);
                 self.tile_ids.get_mut(position.x as usize).unwrap().insert(position.y as usize, (0, 0));
                 return true;
             }
         }
+    }
+
+    fn set_texture(
+        &self,
+        commands: &mut Commands,
+        entity: Entity,
+        position: (f32, f32),
+        index: usize,
+        tileset: &TileSet
+    ){
+        commands.entity(entity).insert((
+            tileset.texture.clone(),
+            TextureAtlas {
+                index: index,
+                layout: tileset.layout.clone(), // ????
+            }
+        ));
     }
 
     pub fn get_tile(
