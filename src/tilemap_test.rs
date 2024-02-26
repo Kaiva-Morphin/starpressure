@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::render_resource::Texture};
+use bevy::{prelude::*, render::render_resource::Texture, window::PrimaryWindow};
 
 mod networking;
 mod game_core;
@@ -176,9 +176,52 @@ fn init_tiles(
 
 fn update(
     mut ship_q: Query<(&mut TileMap, &Transform), With<Ship>>,
+    q_window: Query<&Window, With<PrimaryWindow>>,
+    q_camera: Query<(&Camera, &GlobalTransform)>,
     mut gizmos: Gizmos,
     mut commands: Commands,
+    buttons: Res<ButtonInput<MouseButton>>,
+    collection: Res<TileSetCollection>
 ){
+    if buttons.pressed(MouseButton::Left) || buttons.pressed(MouseButton::Right) {
+        let (camera, camera_transform) = q_camera.single();
+        let window = q_window.single();
+        if let Some(world_position) = window.cursor_position()
+            .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor))
+            .map(|ray| ray.origin.truncate())
+        {
+            for (mut tilemap, transform) in ship_q.iter_mut(){
+                let ingrid_vec = world_position.extend(0.) - transform.translation;
+                let unwrapped_world_vec = transform.rotation.inverse().mul_vec3(ingrid_vec);
+                let size = tilemap.size() * 64;
+                let size = Vec2::from([size.x as f32, size.y as f32]);
+
+                let mut set_tile = |x: u32, y: u32, tileset_id: usize, tile_id: usize|{
+                    tilemap.set_tile(
+                        &mut commands,
+                        UVec2 { x, y },
+                        &collection,
+                        tileset_id,
+                        tile_id
+                    );
+                };
+                
+                
+                if -32. < unwrapped_world_vec.x && -32. < unwrapped_world_vec.y && unwrapped_world_vec.x < size.x + 32. && unwrapped_world_vec.y < size.y + 32.{
+                    let cell_vec = unwrapped_world_vec.truncate() + Vec2::splat(32.);
+                    let cell = cell_vec / 64.;
+                    if cell.x >= 0. && cell.y >= 0. && cell.x <= size.x && cell.y <= size.y{
+                        let cell_pos = UVec2{x: cell.x as u32, y: cell.y as u32};
+                        if buttons.pressed(MouseButton::Left){
+                            set_tile(cell_pos.x, cell_pos.y, 1, 0);
+                        } else {
+                            tilemap.remove_tile(cell_pos, &collection, &mut commands); // 0 0 is air
+                        }
+                    } 
+                }
+            }
+        }
+    }
     for (mut tilemap, transform) in ship_q.iter_mut(){
         tilemap.draw_grid(&mut gizmos, &transform);
     }

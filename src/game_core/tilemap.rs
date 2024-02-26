@@ -144,20 +144,21 @@ impl TileSetCollection{
 #[derive(Component)]
 pub struct TileMap{ // todo: tilemap ship bundle!
     size: UVec2, // left down is 0, 0 corner
-    tiles: Vec<Vec<Entity>>, 
-
+    tile_entities: Vec<Vec<Entity>>, 
+    tile_ids: Vec<Vec<(usize, usize)>>
     //bg_tiles: Vec<Vec<usize>>,
 }
 
 #[allow(dead_code)]
 impl TileMap{
     pub fn init_for(e: Entity, size: UVec2, commands: &mut Commands, collection: &TileSetCollection){ // todo: switch to bulder!
-        let mut tiles = vec![];
+        let mut tile_entities = vec![];
+        let mut tile_ids = vec![];
         commands.entity(e).with_children(|children_builder|{
             let air_tileset = collection.tilesets.get(0).unwrap();
-            
             for x in 0..size.x{
-                let mut row = vec![];
+                let mut entity_row = vec![];
+                let mut tile_row = vec![];
                 for y in 0..size.y{
                     let e = children_builder.spawn((
                         Name::from(String::from("TILE")),
@@ -175,13 +176,17 @@ impl TileMap{
                             ..default()
                         }
                     )).id();
-                    row.push(e);
+                    entity_row.push(e);
+                    tile_row.push((0, 0));
                 }
-                tiles.push(row);
+                tile_entities.push(entity_row);
+                tile_ids.push(tile_row)
             }
-        }).insert(TileMap{size, tiles});
+        }).insert(TileMap{size, tile_entities, tile_ids});
     }
-
+    pub fn size(&self) -> UVec2{
+        return self.size;
+    }
     pub fn draw_grid(
         &self,
         gizmos: &mut Gizmos,
@@ -189,15 +194,16 @@ impl TileMap{
     ){
 
         for x in 0..=self.size.x{
+            let matrix = transform.compute_matrix();
             gizmos.line_2d(
-                (transform.compute_matrix().transform_point3(Vec3{x: x as f32 * 64. - 32., y: 0. - 32., z: 0.})).truncate(),
-                (transform.compute_matrix().transform_point3(Vec3{x: x as f32 * 64. - 32., y: self.size.y as f32 * 64. - 32., z: 0.})).truncate(),
+                (matrix.transform_point3(Vec3{x: x as f32 * 64. - 32., y: 0. - 32., z: 0.})).truncate(),
+                (matrix.transform_point3(Vec3{x: x as f32 * 64. - 32., y: self.size.y as f32 * 64. - 32., z: 0.})).truncate(),
                 Color::BLACK
             );
             for y in 0..=self.size.y{
                 gizmos.line_2d(
-                    (transform.compute_matrix().transform_point3(Vec3{x: 0. - 32., y: y as f32 * 64. - 32., z: 0.})).truncate(),
-                    (transform.compute_matrix().transform_point3(Vec3{x: self.size.x as f32 * 64. - 32., y: y as f32 * 64. - 32., z: 0.})).truncate(),
+                    (matrix.transform_point3(Vec3{x: 0. - 32., y: y as f32 * 64. - 32., z: 0.})).truncate(),
+                    (matrix.transform_point3(Vec3{x: self.size.x as f32 * 64. - 32., y: y as f32 * 64. - 32., z: 0.})).truncate(),
                     Color::BLACK
                 );
             }
@@ -207,17 +213,17 @@ impl TileMap{
     pub fn set_tile(
         &mut self,
         commands: &mut Commands,
-        position: UVec2,
+        position: UVec2, // todo: swap to x, y?
         collection: &TileSetCollection,
         tileset_id: usize,
         tile_id: usize
     ) -> bool {
         let tileset = collection.tilesets.get(tileset_id).unwrap();
         let tile = collection.get_tile(tileset_id, tile_id).unwrap();
-        let e = self.tiles.get(position.x as usize).unwrap().get(position.y as usize).unwrap();
-
+        let e = self.tile_entities.get(position.x as usize).unwrap().get(position.y as usize).unwrap();
         match tile{
             Tile::Singletile => {
+                if let Some(tile) = self.get_tile(position) {if *tile != (0, 0) {return false}};
                 commands.entity(*e).insert(
                     SpriteSheetBundle {
                         transform: Transform {
@@ -233,6 +239,7 @@ impl TileMap{
                         ..default()
                     }
                 );
+                self.tile_ids.get_mut(position.x as usize).unwrap().insert(position.y as usize, (tileset_id, tile_id));
                 return true;
             }
             Tile::Multitile { origin_offset: _, origin_id: _ } => {
@@ -242,8 +249,14 @@ impl TileMap{
             Tile::MultitileOrigin { parts_offsets_ids } => {
                 for (offset, id) in parts_offsets_ids.iter(){
                     let part_pos = IVec2{x: position.x as i32 + offset.x, y: position.y as i32 + offset.y};
-                    if part_pos.x >= 0 && part_pos.y >= 0 && part_pos.x < self.size.x as i32 && part_pos.y < self.size.y as i32 {
-                        let e = self.tiles.get(part_pos.x as usize).unwrap().get(part_pos.y as usize).unwrap();
+                    if let Some(tile) = self.get_tile(UVec2 { x: part_pos.x as u32, y: part_pos.y as u32 }) {if *tile != (0, 0) {return false}};
+                    if !self.in_bounds_i(&part_pos){return false}
+                }
+
+                for (offset, id) in parts_offsets_ids.iter(){
+                    let part_pos = IVec2{x: position.x as i32 + offset.x, y: position.y as i32 + offset.y};
+                    if self.in_bounds_i(&part_pos){
+                        let e = self.tile_entities.get(part_pos.x as usize).unwrap().get(part_pos.y as usize).unwrap();
                         commands.entity(*e).insert(
                             SpriteSheetBundle {
                                 transform: Transform {
@@ -259,6 +272,7 @@ impl TileMap{
                                 ..default()
                             }
                         );
+                        self.tile_ids.get_mut(part_pos.x as usize).unwrap().insert(part_pos.y as usize, (tileset_id, *id));
                     }
                 }
                 commands.entity(*e).insert(
@@ -276,10 +290,158 @@ impl TileMap{
                         ..default()
                     }
                 );
+                self.tile_ids.get_mut(position.x as usize).unwrap().insert(position.y as usize, (tileset_id, tile_id));
                 return true;
             }
         }
         //let sprite = entity_ref.get::<Sprite>().unwrap();
+    }
+
+    fn in_bounds(
+        &self,
+        position: &UVec2
+    ) -> bool {
+        return position.x < self.size.x as u32 && position.y < self.size.y as u32;
+    }
+
+    fn in_bounds_i(
+        &self,
+        position: &IVec2
+    ) -> bool {
+        return position.x >= 0 && position.y >= 0 && position.x < self.size.x as i32 && position.y < self.size.y as i32;
+    }
+
+    pub fn remove_tile(
+        &mut self,
+        position: UVec2,
+        collection: &TileSetCollection,
+        commands: &mut Commands
+    ) -> bool {
+        let e = self.tile_entities.get(position.x as usize).unwrap().get(position.y as usize).unwrap();
+        let tile_id = self.tile_ids.get(position.x as usize).unwrap().get(position.y as usize).unwrap();
+        if *tile_id == (0, 0) {return false;}
+        let tile = collection.get_tile(tile_id.0, tile_id.1).unwrap();
+        let tileset = collection.tilesets.get(0).unwrap();
+        match tile{
+            Tile::Singletile => {
+                commands.entity(*e).insert(
+                    SpriteSheetBundle {
+                        transform: Transform {
+                            scale: Vec3::splat(8.0),
+                            translation: Vec3{x: position.x as f32 * 64., y: position.y as f32 * 64., z: 0.},
+                            ..default()
+                        },
+                        texture: tileset.texture.clone(), // ????
+                        atlas: TextureAtlas {
+                            index: 0,
+                            layout: tileset.layout.clone(), // ????
+                        },
+                        ..default()
+                    }
+                );
+                self.tile_ids.get_mut(position.x as usize).unwrap().insert(position.y as usize, (0, 0));
+                return true;
+            }
+            Tile::Multitile { origin_offset, origin_id} => {
+                let origin_pos = IVec2{x: position.x as i32 + origin_offset.x, y: position.y as i32 + origin_offset.y};
+                if !self.in_bounds_i(&origin_pos){return false;};
+                let origin_tile = collection.get_tile(1, *origin_id).unwrap(); // todo: add handle for othertilesets!
+                match tile{
+                    Tile::MultitileOrigin { parts_offsets_ids } => {
+                        for (offset, id) in parts_offsets_ids.iter(){
+                            let part_pos = IVec2{x: position.x as i32 + offset.x, y: position.y as i32 + offset.y};
+                            if self.in_bounds_i(&part_pos){
+                                let e = self.tile_entities.get(part_pos.x as usize).unwrap().get(part_pos.y as usize).unwrap();
+                                commands.entity(*e).insert(
+                                    SpriteSheetBundle {
+                                        transform: Transform {
+                                            scale: Vec3::splat(8.0),
+                                            translation: Vec3{x: part_pos.x as f32 * 64., y: part_pos.y as f32 * 64., z: 0.},
+                                            ..default()
+                                        },
+                                        texture: tileset.texture.clone(), // ????
+                                        atlas: TextureAtlas {
+                                            index: 0,
+                                            layout: tileset.layout.clone(), // ????
+                                        },
+                                        ..default()
+                                    }
+                                );
+                                self.tile_ids.get_mut(part_pos.x as usize).unwrap().insert(part_pos.y as usize, (0, 0));
+                            }
+                        }
+                        commands.entity(*e).insert(
+                            SpriteSheetBundle {
+                                transform: Transform {
+                                    scale: Vec3::splat(8.0),
+                                    translation: Vec3{x: position.x as f32 * 64., y: position.y as f32 * 64., z: 0.},
+                                    ..default()
+                                },
+                                texture: tileset.texture.clone(), // ????
+                                atlas: TextureAtlas {
+                                    index: 0,
+                                    layout: tileset.layout.clone(), // ????
+                                },
+                                ..default()
+                            }
+                        );
+                    }
+                    _ => {return false}
+                }
+                return true;
+            }
+            Tile::MultitileOrigin { parts_offsets_ids } => {
+                for (offset, id) in parts_offsets_ids.iter(){
+                    let part_pos = IVec2{x: position.x as i32 + offset.x, y: position.y as i32 + offset.y};
+                    if self.in_bounds_i(&part_pos){
+                        let e = self.tile_entities.get(part_pos.x as usize).unwrap().get(part_pos.y as usize).unwrap();
+                        commands.entity(*e).insert(
+                            SpriteSheetBundle {
+                                transform: Transform {
+                                    scale: Vec3::splat(8.0),
+                                    translation: Vec3{x: part_pos.x as f32 * 64., y: part_pos.y as f32 * 64., z: 0.},
+                                    ..default()
+                                },
+                                texture: tileset.texture.clone(), // ????
+                                atlas: TextureAtlas {
+                                    index: 0,
+                                    layout: tileset.layout.clone(), // ????
+                                },
+                                ..default()
+                            }
+                        );
+                        self.tile_ids.get_mut(part_pos.x as usize).unwrap().insert(part_pos.y as usize, (0, 0));
+                    }
+                }
+                commands.entity(*e).insert(
+                    SpriteSheetBundle {
+                        transform: Transform {
+                            scale: Vec3::splat(8.0),
+                            translation: Vec3{x: position.x as f32 * 64., y: position.y as f32 * 64., z: 0.},
+                            ..default()
+                        },
+                        texture: tileset.texture.clone(), // ????
+                        atlas: TextureAtlas {
+                            index: 0,
+                            layout: tileset.layout.clone(), // ????
+                        },
+                        ..default()
+                    }
+                );
+                self.tile_ids.get_mut(position.x as usize).unwrap().insert(position.y as usize, (0, 0));
+                return true;
+            }
+        }
+    }
+
+    pub fn get_tile(
+        &self,
+        position: UVec2
+    ) -> Option<&(usize, usize)> {
+        if let Some(row) = self.tile_ids.get(position.x as usize){
+            return row.get(position.y as usize)
+        }
+        return None;
     }   
 }
 

@@ -1,12 +1,12 @@
 use std::{net::{SocketAddr, UdpSocket}, time::SystemTime};
 
-use bevy::{asset::Assets, core_pipeline::core_2d::Camera2dBundle, ecs::{entity::Entity, event::EventReader, query::With, system::{Commands, Local, Query, ResMut}}, render::{color::Color, mesh::Mesh}, sprite::ColorMaterial, utils::HashMap};
+use bevy::{asset::Assets, core_pipeline::core_2d::Camera2dBundle, ecs::{entity::Entity, event::EventReader, query::With, system::{Commands, Local, Query, Res, ResMut}}, math::Vec2, render::{color::Color, mesh::Mesh}, sprite::ColorMaterial, transform::components::Transform, utils::HashMap};
 use bevy_egui::EguiContexts;
-use bevy_rapier2d::dynamics::{GravityScale, RigidBody, Velocity};
+use bevy_rapier2d::dynamics::Velocity;
 use bevy_renet::renet::{transport::{NetcodeServerTransport, ServerAuthentication, ServerConfig}, RenetServer, ServerEvent};
 use renet_visualizer::RenetServerVisualizer;
 
-use crate::{channels::{connection_config, Channels}, game::spawn_plyer_puppet, game_core::game_core::GameManager, objects::Object, packets::{ClientDataPacket, ClientGaranteedDataPacket, ServerDataPacket, ServerGaranteedDataPacket}};
+use crate::{channels::{connection_config, Channels}, game::spawn_plyer_puppet, game_core::game_core::GameManager, objects::Object, packets::{ClientDataPacket, ClientGaranteedDataPacket, ServerDataPacket, ServerGaranteedDataPacket}, ObjectData};
 
 
 pub fn init_server(
@@ -44,7 +44,6 @@ pub fn server_events(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut game_manager: ResMut<GameManager>,
-    objects: Query<&Object>,
     mut players: Local<HashMap<u64, Entity>>, // client_id -> entity
 ){
     for event in server_events.read() {
@@ -56,9 +55,9 @@ pub fn server_events(
                 server.send_message(*client_id, Channels::Garanteed, encoded);
 
                 let poe = spawn_plyer_puppet(&mut commands, &mut meshes, &mut materials, Color::RED);
-                commands.entity(poe).insert((
+                commands.entity(poe).insert(
                     game_manager.new_object(poe)
-                ));
+                );
 
                 players.insert(client_id.raw(), poe);
             }
@@ -77,7 +76,7 @@ pub fn server_events(
 }
 
 pub fn update_visualizer(
-    mut server: ResMut<RenetServer>,
+    server: Res<RenetServer>,
     mut egui_contexts: EguiContexts,
     mut visualizer: ResMut<RenetServerVisualizer<200>>,
 ){
@@ -87,11 +86,15 @@ pub fn update_visualizer(
 
 pub fn update_server(
     mut server: ResMut<RenetServer>,
-    q: Query<&Object>
+    mut game_manager: ResMut<GameManager>,
+    mut q: Query<(&mut Velocity, &Transform)>
 ){
-    for client_id in server.clients_id().into_iter() {
+    game_manager.tick_step();
+    for client_id in server.clients_id().into_iter() { 
+        // todo: add exceptions for packet spam! for example, (velocity += inputs.velocity),
+        // todo: but if many packets recieved it may looks like (velocity += inputs.velocity * 5)
         while let Some(message) = server.receive_message(client_id, Channels::Garanteed) {
-            let msg: ClientGaranteedDataPacket = bincode::deserialize::<ClientGaranteedDataPacket>(&message).unwrap();
+            let msg: ClientGaranteedDataPacket = bincode::deserialize::<ClientGaranteedDataPacket>(&message).unwrap(); // todo: add exception handle!
             match msg {
                 ClientGaranteedDataPacket::Message { text } => {
                     println!("recieved {} from {}", text, client_id.raw());
@@ -101,33 +104,49 @@ pub fn update_server(
         }
     }
 
-    for client_id in server.clients_id().into_iter() {
+    for client_id in server.clients_id().into_iter() { 
+        // todo: add exceptions for packet spam! for example, (velocity += inputs.velocity),
+        // todo: but if many packets recieved it may looks like (velocity += inputs.velocity * 5)
         while let Some(message) = server.receive_message(client_id, Channels::Fast) {
             
-            let msg: ClientDataPacket = bincode::deserialize::<ClientDataPacket>(&message).unwrap();
+            let msg: ClientDataPacket = bincode::deserialize::<ClientDataPacket>(&message).unwrap(); // todo: add exception handle!
             match msg {
-                ClientDataPacket::Inputs { keys: _keys } => {
-
+                ClientDataPacket::Inputs { keys } => {
+                    let t = q.get_single_mut();
+                    if let Ok(t) = t{
+                        let (mut v, t) = t;
+                        let mut vec = Vec2::ZERO;
+                        if keys.up {vec.y += 1.};
+                        if keys.down {vec.y -= 1.};
+                        if keys.left {vec.x -= 1.};
+                        if keys.right {vec.x += 1.};
+                        v.linvel += vec * 3.;
+                        if vec == Vec2::ZERO {v.linvel *= 0.9};
+                    }
                 }
-                ClientDataPacket::Echo{time} => {
+                /*ClientDataPacket::Echo{time} => {
                     let msg = ServerDataPacket::Echo { time };
                     let encoded: Vec<u8> = bincode::serialize(&msg).unwrap();
                     server.send_message(client_id, Channels::Fast, encoded);
-                }
-                //_ => {}
+                }*/
+                _ => {}
             }
         }
     }
 
-    for item in q.iter(){
+    /*for item in q.iter(){
         println!("{}", item.id());
-    }
+    }*/
 
     for client_id in server.clients_id().into_iter() {
-        let msg = ServerDataPacket::Update {
-            data: Vec::new(), tick: 0, 
-        };
-        let encoded: Vec<u8> = bincode::serialize(&msg).unwrap();
-        server.send_message(client_id, Channels::Fast, encoded);
+        let t = q.get_single_mut();
+        if let Ok(t) = t{
+            let (mut v, t) = t;
+            let msg = ServerDataPacket::Update {
+                data: vec![ObjectData{linvel: v.linvel, position: t.translation}], tick: 0, 
+            };
+            let encoded: Vec<u8> = bincode::serialize(&msg).unwrap();
+            server.send_message(client_id, Channels::Fast, encoded);
+        }
     }
 }

@@ -1,16 +1,20 @@
+use bevy::math::{Vec2, Vec3};
 use serde::{Deserialize, Serialize};
 
 
 
 #[derive(Serialize, Deserialize)]
-pub struct ObjectData{}
+pub struct ObjectData{
+    pub linvel: Vec2,
+    pub position: Vec3,
+}
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct InputKeys {
-    up: bool,
-    down: bool,
-    left: bool,
-    right: bool,
+    pub up: bool,
+    pub down: bool,
+    pub left: bool,
+    pub right: bool,
 }
 
 
