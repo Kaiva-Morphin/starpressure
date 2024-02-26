@@ -4,8 +4,11 @@ use bevy_rapier2d::prelude::*;
 //use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use components::{CursorEntity, CursorPosition, WindowSize};
+use ragdoll::RagdollPlugin;
 use ship::ShipPlugin;
+
 mod ship;
+mod ragdoll;
 mod appstates;
 mod systems;
 pub mod components;
@@ -39,7 +42,10 @@ fn main() {
             ))
         .add_plugins(RapierDebugRenderPlugin::default())
         // own plugins
-        .add_plugins(ShipPlugin)
+        .add_plugins((
+            ShipPlugin,
+            RagdollPlugin,
+        ))
         // systems
         .add_systems(Startup, set_window_size)
 
@@ -48,9 +54,10 @@ fn main() {
         .run_if(in_state(AppState::InMenu)))
         
         .add_systems(Update, (
-            raycast, draw_net
+            raycast, free_camera_controller
         ).run_if(in_state(AppState::InGame)))
 
-        .add_systems(OnEnter(AppState::InGame), (spawn_camera, spawn_box).chain())
+        .add_systems(OnEnter(AppState::InGame), 
+        (spawn_camera, spawn_floor).chain())
         .run()
 }

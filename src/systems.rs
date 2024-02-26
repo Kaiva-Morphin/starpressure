@@ -1,4 +1,4 @@
-use bevy::{prelude::*, sprite::{MaterialMesh2dBundle, Mesh2dHandle}};
+use bevy::{input::mouse::MouseWheel, prelude::*, sprite::{MaterialMesh2dBundle, Mesh2dHandle}};
 use bevy_egui::egui::Shape;
 use bevy_rapier2d::prelude::*;
 use bevy::window::PrimaryWindow;
@@ -21,6 +21,7 @@ pub fn raycast(
             0.,
             1.,
         );
+        
         let ray_pos = camera.projection_matrix().inverse() * ndc;
         let mut ray_pos = ray_pos.xy();
         ray_pos.y = -ray_pos.y;
@@ -98,6 +99,42 @@ pub fn spawn_camera(
     });
 }
 
+pub fn free_camera_controller(
+    mut camera_q: Query<&mut Transform, With<Camera>>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut scroll_ev: EventReader<MouseWheel>,
+    time: Res<Time>,
+) {
+    let dt = time.delta_seconds();
+    let mut camera_transform = camera_q.single_mut();
+    let mut direction = Vec3::ZERO;
+    let mut ms = 50.;
+
+    if keyboard_input.pressed(KeyCode::KeyA) {
+        direction += Vec3::new(-1., 0., 0.);
+    }
+    if keyboard_input.pressed(KeyCode::KeyD) {
+        direction += Vec3::new(1., 0., 0.);
+    }
+    if keyboard_input.pressed(KeyCode::KeyW) {
+        direction += Vec3::new(0., 1., 0.);
+    }
+    if keyboard_input.pressed(KeyCode::KeyS) {
+        direction += Vec3::new(0., -1., 0.);
+    }
+    if keyboard_input.pressed(KeyCode::ControlLeft) {
+        ms *= 2.;
+    }
+
+    camera_transform.translation.x += direction.x * ms * dt;
+    camera_transform.translation.y += direction.y * ms * dt;
+
+    for ev in scroll_ev.read() {
+        camera_transform.scale.x = (camera_transform.scale.x - ev.y * 0.2).clamp(0.1, 1.);
+        camera_transform.scale.y = (camera_transform.scale.y - ev.y * 0.2).clamp(0.1, 1.);
+    }
+}
+
 pub fn spawn_box(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -113,3 +150,15 @@ pub fn spawn_box(
         Collider::cuboid(2., 2.),
     ));
 }
+
+pub fn spawn_floor(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    commands.spawn((
+        Collider::cuboid(200., 2.),
+        Transform::from_xyz(0., -90., 0.),
+        Name::new("floor"),
+    ));
+}
+

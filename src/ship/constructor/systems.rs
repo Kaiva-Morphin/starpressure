@@ -74,15 +74,17 @@ pub fn init_ship(
     asset_server: Res<AssetServer>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
 ) {
-    //if keyboard_input.just_released(KeyCode::KeyI) {
+    if keyboard_input.just_released(KeyCode::KeyI) {
         let room = init_room(&mut commands, &asset_server, [2, 2]);
         let tile = init_tile(&mut commands, &asset_server, [0, 0], DEFAULT_D);
         commands.entity(room).add_child(tile);
         commands.spawn(PlayerShip)
-        .insert(TransformBundle::default())
-        .insert(VisibilityBundle::default())
+        .insert((
+            Name::new("ship"),
+            TransformBundle::default(),
+            VisibilityBundle::default(),))
         .add_child(room);
-    //}
+    }
 }
 
 pub fn place_tile(
