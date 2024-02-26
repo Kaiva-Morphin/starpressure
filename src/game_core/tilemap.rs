@@ -11,6 +11,7 @@ pub struct TileCollisionShapes{
 
 // todo: this enum for test only, add multitile generator and switch to struct! (this may be used as tile_type)
 // generator must put multitile pieces in end of vec, out of base len.
+#[allow(dead_code)]
 #[derive(Clone)]
 pub enum Tile{ 
     Singletile,
@@ -21,12 +22,11 @@ pub enum Tile{
 /*
 pub struct Tile {
     durability: ?,
-    airflow: f32, // 0 -> 1, ability of tile to pass air
+    airflow: f32, // 0 -> 1, ability of tile to pass some air
     waterflow: f32,
-    collision_shape: ???,
+    collision_shape: ???, // id -> shape in atlas
     origin_offset: IVec2,
     parts_offsets: Vec<IVec2>,
-
 }
 */
 
@@ -62,6 +62,8 @@ pub struct TileSetCollection{ // tileset names? // todo: make global singletone 
         }
     }
 }*/
+
+#[allow(dead_code)]
 impl TileSetCollection{
     pub fn init(texture_atlases: &mut ResMut<Assets<TextureAtlasLayout>>, asset_server: &Res<AssetServer>) -> Self{
         let texture_atlas = TextureAtlasLayout::from_grid(Vec2::new(0.0, 0.0), 1, 1, None, None);
@@ -139,13 +141,6 @@ impl TileSetCollection{
     
 }
 
-
-
-struct TileID{
-    tileset_id: usize,
-    tile_id: usize
-}
-
 #[derive(Component)]
 pub struct TileMap{ // todo: tilemap ship bundle!
     size: UVec2, // left down is 0, 0 corner
@@ -154,7 +149,7 @@ pub struct TileMap{ // todo: tilemap ship bundle!
     //bg_tiles: Vec<Vec<usize>>,
 }
 
-
+#[allow(dead_code)]
 impl TileMap{
     pub fn init_for(e: Entity, size: UVec2, commands: &mut Commands, collection: &TileSetCollection){ // todo: switch to bulder!
         let mut tiles = vec![];
@@ -240,7 +235,7 @@ impl TileMap{
                 );
                 return true;
             }
-            Tile::Multitile { origin_offset, origin_id } => {
+            Tile::Multitile { origin_offset: _, origin_id: _ } => {
                 // todo: ignore?
                 return false;
             }
@@ -284,10 +279,6 @@ impl TileMap{
                 return true;
             }
         }
-
-        
-        
-        
         //let sprite = entity_ref.get::<Sprite>().unwrap();
     }   
 }

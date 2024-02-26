@@ -98,7 +98,7 @@ fn init(
     
 
     commands.spawn((
-        Collider::cuboid(1000., 10.),
+        Collider::cuboid(100., 10.),
         RigidBody::Fixed,
     )).insert(GlobalTransform::from(Transform::from_translation(Vec3{x: 0., y:-200., z:0.})));
 
@@ -109,8 +109,17 @@ fn init(
         Ship,
     )).id();
 
-
     TileMap::init_for(e, UVec2{x: 10, y: 10}, &mut commands, &collection); // todo: switch to bulder!
+
+    let e = commands.spawn((
+        Name::from(String::from("SHIP2")),
+        TransformBundle::default(),
+        VisibilityBundle::default(),
+        Ship,
+    )).id();
+
+    TileMap::init_for(e, UVec2{x: 5, y: 8}, &mut commands, &collection); // todo: switch to bulder!
+    commands.entity(e).insert(Transform::from_translation(Vec3{x: -100., y: -10., z: 0.}).with_rotation(Quat::from_euler(EulerRot::XYZ, 0., 0., 3.14 / 3.)));
 
     commands.insert_resource(collection);
 }
@@ -123,28 +132,44 @@ fn init_tiles(
     mut commands: Commands,
     collection: Res<TileSetCollection>
 ){
-    
+    let mut i = 0;
     for mut tilemap in ship_q.iter_mut(){
-        let mut set_tile = |x: u32, y: u32, tile_id: usize|{
-            tilemap.set_tile(
-                &mut commands,
-                UVec2 { x, y },
-                &collection,
-                1,
-                tile_id
-            );
-        };
-        set_tile(0, 0, 15);
-        set_tile(3, 0, 15);
-        set_tile(2, 2, 3);
-        set_tile(2, 3, 0);
-        set_tile(2, 4, 0);
-        set_tile(2, 5, 0);
-        set_tile(2, 6, 9);
-        set_tile(1, 6, 10);
-        set_tile(1, 5, 12);
-
+        i += 1;
+        if i == 1{
+            let tileset_id = 1;
+            let mut pasted_position_id = 0;
+            for i in 0..collection.tilesets.get(tileset_id).unwrap().tiles.len(){
+                let is_pasted = tilemap.set_tile(
+                    &mut commands,
+                    UVec2 { x: (pasted_position_id * 2) % 10, y: (pasted_position_id * 2 / 10) * 2 + 1 },
+                    &collection,
+                    tileset_id,
+                    i
+                );
+                if is_pasted {pasted_position_id += 1;}
+            }
+        } else {
+            let mut set_tile = |x: u32, y: u32, tile_id: usize|{
+                tilemap.set_tile(
+                    &mut commands,
+                    UVec2 { x, y },
+                    &collection,
+                    1,
+                    tile_id
+                );
+            };
+            set_tile(0, 0, 15);
+            set_tile(3, 0, 15);
+            set_tile(2, 2, 3);
+            set_tile(2, 3, 0);
+            set_tile(2, 4, 0);
+            set_tile(2, 5, 0);
+            set_tile(2, 6, 9);
+            set_tile(1, 6, 10);
+            set_tile(1, 5, 12);
+        }
     }
+
 }
 
 
