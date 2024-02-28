@@ -206,6 +206,7 @@ impl TileMap{
                     (matrix.transform_point3(Vec3{x: self.size.x as f32 * 64. - 32., y: y as f32 * 64. - 32., z: 0.})).truncate(),
                     Color::BLACK
                 );
+                
             }
         }
     }

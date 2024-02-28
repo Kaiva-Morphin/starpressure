@@ -47,9 +47,10 @@ fn init(
     mut commands: Commands,
     
 ){
-    commands.spawn(Camera2dBundle::default());
-
-
+    commands.spawn((Camera2dBundle::default(),
+    bevy_rapier2d::prelude::CollisionGroups::default()
+    ));
+    
 }
 
 

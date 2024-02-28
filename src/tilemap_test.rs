@@ -44,6 +44,10 @@ fn init(
 ){
     commands.spawn(Camera2dBundle::default());
 
+    commands.spawn((Camera2dBundle::default(),
+    bevy_rapier2d::prelude::CollisionGroups::default()
+    ));
+    //0b00000000000100001;
     /*let texture_handle: Handle<Image> = asset_server.load("tiles.png");
     let texture_atlas = TextureAtlasLayout::from_grid(Vec2::new(16.0, 16.0), 2, 2, None, None);
     let texture_atlas_handle: Handle<TextureAtlasLayout> = texture_atlases.add(texture_atlas);
