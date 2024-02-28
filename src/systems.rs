@@ -157,8 +157,9 @@ pub fn spawn_floor(
 ) {
     commands.spawn((
         Collider::cuboid(200., 2.),
-        Transform::from_xyz(0., -90., 0.),
+        TransformBundle::from(Transform::from_xyz(0., -90., 0.)),
         Name::new("floor"),
+        SolverGroups::new(Group::from_bits(0b0001).unwrap(), Group::from_bits(0b0001).unwrap())
     ));
 }
 

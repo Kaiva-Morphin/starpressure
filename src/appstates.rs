@@ -8,6 +8,13 @@ pub enum AppState {
     InGame,
 }
 
+#[derive(States, Debug, Clone, PartialEq, Eq, Hash, Default)]
+pub enum GameState {
+    #[default]
+    None,
+    Editor,
+}
+
 pub fn menu_ph(
     mut appstate: ResMut<NextState<AppState>>
 ) {

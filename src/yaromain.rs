@@ -4,13 +4,16 @@ use bevy_rapier2d::prelude::*;
 //use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use components::{CursorEntity, CursorPosition, WindowSize};
+use editor::EditorPlugin;
 use ragdoll::RagdollPlugin;
 use ship::ShipPlugin;
 
 mod ship;
 mod ragdoll;
+mod editor;
 mod appstates;
 mod systems;
+mod consts;
 pub mod components;
 
 use systems::*;
@@ -45,6 +48,7 @@ fn main() {
         .add_plugins((
             ShipPlugin,
             RagdollPlugin,
+            EditorPlugin,
         ))
         // systems
         .add_systems(Startup, set_window_size)
