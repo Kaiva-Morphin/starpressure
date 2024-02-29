@@ -3,7 +3,6 @@ use bevy::prelude::*;
 use bevy_file_dialog::prelude::*;
 use bevy_rapier2d::prelude::*;
 //use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use components::{CursorEntity, CursorPosition, CursorWorldPosition, WindowSize};
 use editor::EditorPlugin;
 use ragdoll::RagdollPlugin;
@@ -15,9 +14,11 @@ mod editor;
 mod appstates;
 mod systems;
 mod consts;
+mod world_inspector;
 pub mod components;
 
 use systems::*;
+use world_inspector::WorldInspectorPlugin;
 
 struct RagdollFileContents;
 
@@ -44,7 +45,7 @@ fn main() {
         .insert_resource(WindowSize {width: 1920, height: 1080})
         // mod plugins
         .add_plugins((
-            WorldInspectorPlugin::new(),
+            WorldInspectorPlugin,
             RapierPhysicsPlugin::<NoUserData>::default(),
             FileDialogPlugin::new()
                 // allow saving of files marked with RagdollFileContents

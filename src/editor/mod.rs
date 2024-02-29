@@ -24,7 +24,8 @@ impl Plugin for EditorPlugin {
         .add_systems(OnEnter(GameState::Editor), init_editor_ui)
         .add_systems(Update, (
             interact_resizer, update_editor_ui, interact_file, manage_file_window, dialog,
-            save_load_file, interact_new_file_tab, interact_save_file_tab, interact_open_file_tab
+            save_load_file, interact_new_file_tab, interact_save_file_tab, interact_open_file_tab,
+            new_file,
         ).run_if(in_state(GameState::Editor)))
         ;
     }

@@ -21,6 +21,15 @@ pub struct NewFileButton;
 pub struct SaveFileButton;
 
 #[derive(Component)]
+pub struct TopNode;
+
+#[derive(Component)]
+pub struct FileTabNode {
+    pub text_entity: Entity,
+    pub image_entity: Entity,
+}
+
+#[derive(Component)]
 pub struct FileTab {
     pub top_entity: Entity,
 }
@@ -57,4 +66,19 @@ pub struct OpenFileEvent;
 #[derive(Serialize, Deserialize)]
 pub struct RagdollSave {
 
+} // to be used
+
+#[derive(Component)] // unused
+pub struct DynamicText {
+    pub tl: Vec2, // top left
+    pub br: Vec2, // bottom right
+}
+
+impl DynamicText {
+    pub fn is_inside(&self, point: Vec2) -> bool {
+        if self.tl.x >= point.x && self.tl.y >= point.y && point.x <= self.br.x && point.y <= self.br.y {
+            return true;
+        }
+        return false;
+    }
 }

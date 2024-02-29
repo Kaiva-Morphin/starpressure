@@ -1,4 +1,9 @@
-use bevy::prelude::*;
+use std::f32::consts::PI;
+
+use bevy::{prelude::*, ui::widget::UiImageSize};
+use bevy_rapier2d::prelude::*;
+
+use crate::ragdoll::systems::init_skeleton;
 
 use super::components::*;
 
@@ -57,6 +62,7 @@ pub fn init_editor_ui(
                 width: Val::Percent(20.),
                 height: Val::Percent(100.),
                 max_width: Val::Percent(70.),
+                min_width: Val::Percent(10.),
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,
                 flex_direction: FlexDirection::Column,
@@ -141,6 +147,7 @@ pub fn manage_file_window(
                     ..default()
                 },
                 background_color: HOVER_COLOR.into(),
+                z_index: ZIndex::Global(100),
                 ..default()
             }).id();
             // new file button
@@ -174,7 +181,9 @@ pub fn manage_file_window(
             commands.entity(top_entity).insert(FileTab { top_entity });
             commands.entity(event.entity).add_child(top_entity);
         } else {
-            commands.entity(file_tab_q.single().top_entity).despawn_recursive();
+            if let Ok(tab) = file_tab_q.get_single() {
+                commands.entity(tab.top_entity).despawn_recursive();
+            }
         }
     }
 }
@@ -193,7 +202,7 @@ fn spawn_file_tab_button(
                 height: Val::Percent(100. / n_actions),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
-                position_type: PositionType::Absolute,
+                position_type: PositionType::Absolute, // todo: mb relative?
                 top: Val::Percent(100. / n_actions * order_num),
                 ..default()
             },
@@ -220,12 +229,80 @@ fn spawn_file_tab_button(
 }
 
 pub fn new_file(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
     mut new_event: EventReader<NewFileEvent>,
     selection_tab_q: Query<Entity, With<SelectionTab>>,
+    file_tab_q: Query<&FileTab>,
 ) {
     for _ in new_event.read() {
+        init_skeleton(&mut commands, RigidBody::Fixed);
         // todo: if there is no current file
+        commands.entity(file_tab_q.single().top_entity).despawn_recursive();
         let selection_tab_entity = selection_tab_q.single();
-        
+        let top_node = spawn_node(&mut commands, &asset_server);
+        commands.entity(selection_tab_entity).add_child(top_node);
     }
+}
+
+fn spawn_node(
+    commands: &mut Commands,
+    asset_server: &Res<AssetServer>,
+) -> Entity {
+    let button_entity = commands.spawn(
+        ButtonBundle {
+            style: Style {
+                width: Val::Percent(90.),
+                height: Val::Percent(4.),
+                justify_content: JustifyContent::Start,
+                align_items: AlignItems::Center,
+                position_type: PositionType::Absolute,
+                left: Val::Percent(5.),
+                right: Val::Percent(5.),
+                top: Val::Percent(5.),
+                ..default()
+            },
+            background_color: SECONDARY_COLOR.into(),
+            ..default()
+        }
+    ).id();
+    let text_entity = commands.spawn((
+        TextBundle {
+            text: Text {
+                sections: vec![TextSection::new("New Ragdoll", TextStyle {
+                    font: asset_server.load("fonts/minecraft_font.ttf"),
+                    font_size: 16.,
+                    color: TEXT_COLOR
+                })],
+                justify: JustifyText::Left,
+                ..default()
+            },
+            style: Style {
+                height: Val::Percent(95.),
+                width: Val::Percent(100.),
+                left: Val::Percent(0.),
+                top: Val::Percent(0.),
+                align_self: AlignSelf::Center,
+                justify_self: JustifySelf::Center,
+                ..default()
+            },
+            background_color: MAIN_COLOR.into(),
+            ..default()
+        },
+    )).id();
+    let image_entity = commands.spawn((
+        ImageBundle {
+            style: Style {
+                ..default()
+            },
+            transform: Transform::from_rotation(Quat::from_rotation_z(PI / 2.)),
+            image: asset_server.load("arrow.png").into(),
+            ..default()
+        }
+    )).id();
+    commands.entity(button_entity)
+    .add_child(text_entity)
+    .add_child(image_entity)
+    .insert(FileTabNode {text_entity: text_entity, image_entity: image_entity});
+    button_entity
 }
