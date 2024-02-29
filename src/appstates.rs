@@ -11,12 +11,14 @@ pub enum AppState {
 #[derive(States, Debug, Clone, PartialEq, Eq, Hash, Default)]
 pub enum GameState {
     #[default]
-    None,
+    Game,
     Editor,
 }
 
 pub fn menu_ph(
-    mut appstate: ResMut<NextState<AppState>>
+    mut appstate: ResMut<NextState<AppState>>,
+    mut gamestate: ResMut<NextState<GameState>>,
 ) {
     appstate.set(AppState::InGame);
+    gamestate.set(GameState::Editor);
 }

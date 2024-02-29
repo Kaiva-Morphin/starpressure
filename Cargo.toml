@@ -18,6 +18,8 @@ bevy = { version = "0.13.0", features = ["dynamic_linking", "bevy_dynamic_plugin
 bevy_rapier2d = { version = "0.25.0", features = [ "debug-render-2d", "parallel", "enhanced-determinism" ] }
 bevy_egui = "0.25.0"
 bevy-inspector-egui = "0.23.2"
+bevy_file_dialog = "=0.4.0"
+
 # random
 rand = "0.8.5"
 rand_chacha = "0.3.1"
@@ -36,3 +38,15 @@ weighted_rand = "0.4.2"
 [[bin]]
 name = "yaromain"
 path = "src/yaromain.rs"
+
+[[bin]]
+name = "net"
+path = "src/networking_test.rs"
+
+#[[bin]]
+#name = "client_net"
+#path = "src/networking/networking_test.rs"
+#
+#[[bin]]
+#name = "server_net"
+#path = "src/networking/networking_test.rs"

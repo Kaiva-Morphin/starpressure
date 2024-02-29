@@ -3,17 +3,19 @@ use bevy_egui::egui::Shape;
 use bevy_rapier2d::prelude::*;
 use bevy::window::PrimaryWindow;
 
-use crate::{components::{Box, CursorEntity, CursorPosition, WindowSize}, ship::{ tiles::systems::{TILE_SIZE, TILE_SIZE_U32, TILE_SIZE_USIZE}}};
+use crate::{components::{Box, CursorEntity, CursorPosition, CursorWorldPosition, WindowSize}, ship::tiles::systems::{TILE_SIZE, TILE_SIZE_U32, TILE_SIZE_USIZE}};
 
 pub fn raycast(
     rapier_context: Res<RapierContext>,
     window_q: Query<&Window, With<PrimaryWindow>>,
     camera_q: Query<&Camera>,
+    mut world_cursor_pos_res: ResMut<CursorWorldPosition>,
     mut cursor_pos_res: ResMut<CursorPosition>,
-    mut cursor_entity_res: ResMut<CursorEntity>
+    mut cursor_entity_res: ResMut<CursorEntity>,
 ) {
     let window = window_q.single();
     if let Some(cursor_pos) = window.physical_cursor_position() {
+        cursor_pos_res.pos = cursor_pos;
         let camera = camera_q.single();
         let ndc = Vec4::new(
             (cursor_pos.x / window.physical_width() as f32) * 2. - 1.,
@@ -29,7 +31,7 @@ pub fn raycast(
         let max_toi = 4.0;
         let solid = true;
         let filter = QueryFilter::default();
-        cursor_pos_res.pos = ray_pos;
+        world_cursor_pos_res.pos = ray_pos;
         if let Some((entity, _)) = rapier_context.cast_ray(
             ray_pos, ray_dir, max_toi, solid, filter
         ) {

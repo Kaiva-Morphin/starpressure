@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{components::CursorPosition, ship::{components::PlayerShip, init_room, init_tile, init_wall, tiles::components::{Room, Tile, Wall, DEFAULT_D}}};
+use crate::{components::CursorWorldPosition, ship::{components::PlayerShip, init_room, init_tile, init_wall, tiles::components::{Room, Tile, Wall, DEFAULT_D}}};
 
 use super::components::{RoomSave, ShipSave};
 
@@ -92,7 +92,7 @@ pub fn place_tile(
     asset_server: Res<AssetServer>,
     ship_q: Query<&Children, With<PlayerShip>>,
     rooms_q: Query<(&Room, &Children)>,
-    cursor_pos: Res<CursorPosition>,
+    cursor_pos: Res<CursorWorldPosition>,
     mouse_button: Res<ButtonInput<MouseButton>>,
 ) {
     // todo: remove from Update scedule, appstate mb

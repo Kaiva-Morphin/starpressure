@@ -1,9 +1,10 @@
-use appstates::{menu_ph, AppState};
+use appstates::{menu_ph, AppState, GameState};
 use bevy::prelude::*;
+use bevy_file_dialog::prelude::*;
 use bevy_rapier2d::prelude::*;
 //use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use components::{CursorEntity, CursorPosition, WindowSize};
+use components::{CursorEntity, CursorPosition, CursorWorldPosition, WindowSize};
 use editor::EditorPlugin;
 use ragdoll::RagdollPlugin;
 use ship::ShipPlugin;
@@ -18,6 +19,7 @@ pub mod components;
 
 use systems::*;
 
+struct RagdollFileContents;
 
 fn main() {
     App::new()
@@ -32,16 +34,23 @@ fn main() {
             }),)
         // states
         .init_state::<AppState>()
+        .init_state::<GameState>()
         // events
         //.add_event::<UpdateMeshEvent>()
         // resources
         .insert_resource(CursorEntity { entity: None })
+        .insert_resource(CursorWorldPosition { pos: Vec2::ZERO })
         .insert_resource(CursorPosition { pos: Vec2::ZERO })
         .insert_resource(WindowSize {width: 1920, height: 1080})
         // mod plugins
         .add_plugins((
             WorldInspectorPlugin::new(),
             RapierPhysicsPlugin::<NoUserData>::default(),
+            FileDialogPlugin::new()
+                // allow saving of files marked with RagdollFileContents
+                .with_save_file::<RagdollFileContents>()
+                // allow loading of files marked with RagdollFileContents
+                .with_load_file::<RagdollFileContents>(),
             ))
         .add_plugins(RapierDebugRenderPlugin::default())
         // own plugins
