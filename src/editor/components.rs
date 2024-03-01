@@ -21,12 +21,19 @@ pub struct NewFileButton;
 pub struct SaveFileButton;
 
 #[derive(Component)]
+pub struct LoadAtlasButton;
+
+#[derive(Component)]
 pub struct TopNode;
+
+#[derive(Component)]
+pub struct Arrow;
 
 #[derive(Component)]
 pub struct FileTabNode {
     pub text_entity: Entity,
     pub image_entity: Entity,
+    pub is_opened: bool,
 }
 
 #[derive(Component)]
@@ -63,22 +70,28 @@ pub struct SaveFileEvent;
 #[derive(Event)]
 pub struct OpenFileEvent;
 
+#[derive(Event)]
+pub struct LoadAtlasEvent;
+
 #[derive(Serialize, Deserialize)]
 pub struct RagdollSave {
 
 } // to be used
 
-#[derive(Component)] // unused
-pub struct DynamicText {
-    pub tl: Vec2, // top left
-    pub br: Vec2, // bottom right
+#[derive(Resource)]
+pub struct UiVars {
+    pub title: String,
 }
 
-impl DynamicText {
-    pub fn is_inside(&self, point: Vec2) -> bool {
-        if self.tl.x >= point.x && self.tl.y >= point.y && point.x <= self.br.x && point.y <= self.br.y {
-            return true;
+impl UiVars {
+    pub fn default() -> Self {
+        UiVars { 
+            title: "Jopa".to_owned()
         }
-        return false;
     }
+}
+
+#[derive(Resource)]
+pub struct LoadedAtlas {
+    pub handle: Handle<Image>,
 }

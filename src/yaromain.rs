@@ -21,6 +21,8 @@ use systems::*;
 use world_inspector::WorldInspectorPlugin;
 
 struct RagdollFileContents;
+//struct ShipFileContents;
+struct AtlasFileContents;
 
 fn main() {
     App::new()
@@ -45,13 +47,13 @@ fn main() {
         .insert_resource(WindowSize {width: 1920, height: 1080})
         // mod plugins
         .add_plugins((
+            bevy_egui::EguiPlugin,
             WorldInspectorPlugin,
             RapierPhysicsPlugin::<NoUserData>::default(),
             FileDialogPlugin::new()
-                // allow saving of files marked with RagdollFileContents
                 .with_save_file::<RagdollFileContents>()
-                // allow loading of files marked with RagdollFileContents
-                .with_load_file::<RagdollFileContents>(),
+                .with_load_file::<RagdollFileContents>()
+                .with_load_file::<AtlasFileContents>(),
             ))
         .add_plugins(RapierDebugRenderPlugin::default())
         // own plugins

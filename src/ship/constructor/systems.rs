@@ -33,7 +33,7 @@ pub fn save_ship(
             }
         }
         let file = std::fs::File::create("data.json").unwrap();
-        serde_json::to_writer(file, &save).unwrap();
+        //serde_json::to_writer(file, &save).unwrap();
     }
 }
 
@@ -42,31 +42,31 @@ pub fn load_ship(
     asset_server: Res<AssetServer>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
 ) {
-    if keyboard_input.just_released(KeyCode::KeyL) {
-        let file = std::fs::File::open("data.json").unwrap();
-        let ship: ShipSave = serde_json::from_reader(file).unwrap();
-        let mut room_entities = vec![];
-        for room in ship.rooms {
-            let mut children_entities = vec![];
-            let room_entity = init_room(&mut commands, &asset_server, room.size);
-            for tile in room.tiles {
-                children_entities.push(init_tile(&mut commands, &asset_server, tile.pos, 10.));
-            }
-            for wall in room.walls {
-                children_entities.push(init_wall(&mut commands, &asset_server, wall))
-            }
-            commands.entity(room_entity).push_children(&children_entities);
-            room_entities.push(room_entity)
-        }
-        let ship = commands.spawn(PlayerShip)
-        .insert((
-            Name::new("ship"),
-            TransformBundle::default(),
-            VisibilityBundle::default()),)
-        .id()
-        ;
-        commands.entity(ship).push_children(&room_entities);
-    }
+    //if keyboard_input.just_released(KeyCode::KeyL) {
+    //    let file = std::fs::File::open("data.json").unwrap();
+    //    //let ship: ShipSave = serde_json::from_reader(file).unwrap();
+    //    let mut room_entities = vec![];
+    //    for room in ship.rooms {
+    //        let mut children_entities = vec![];
+    //        let room_entity = init_room(&mut commands, &asset_server, room.size);
+    //        for tile in room.tiles {
+    //            children_entities.push(init_tile(&mut commands, &asset_server, tile.pos, 10.));
+    //        }
+    //        for wall in room.walls {
+    //            children_entities.push(init_wall(&mut commands, &asset_server, wall))
+    //        }
+    //        commands.entity(room_entity).push_children(&children_entities);
+    //        room_entities.push(room_entity)
+    //    }
+    //    let ship = commands.spawn(PlayerShip)
+    //    .insert((
+    //        Name::new("ship"),
+    //        TransformBundle::default(),
+    //        VisibilityBundle::default()),)
+    //    .id()
+    //    ;
+    //    commands.entity(ship).push_children(&room_entities);
+    //}
 }
 
 pub fn init_ship(
