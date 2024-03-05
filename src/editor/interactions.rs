@@ -157,15 +157,3 @@ pub fn save_open_file(
 
     }
 }
-
-pub fn load_atlas(
-    mut load_event: EventReader<DialogFileLoaded<AtlasFileContents>>,
-    mut egui_user_textures: ResMut<bevy_egui::EguiUserTextures>,
-    asset_server: ResMut<AssetServer>,
-    mut loaded_atlas: ResMut<LoadedAtlas>,
-) {
-    for event in load_event.read() {
-        loaded_atlas.handle = asset_server.load::<Image>(event.path.clone());
-        egui_user_textures.add_image(loaded_atlas.handle.clone());
-    }
-}

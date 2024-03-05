@@ -13,7 +13,9 @@ use interactions::*;
 use ui::*;
 use atlas::*;
 
-use self::components::{FileOpenWindowEvent, LoadAtlasEvent, LoadedAtlas, NewFileEvent, OpenFileEvent, ResizeEvent, SaveFileEvent, UiVars};
+use self::components::{
+    AtlasData, FileOpenWindowEvent, LoadAtlasEvent, NewFileEvent, OpenFileEvent, ResizeEvent,
+    SaveFileEvent};
 
 pub struct EditorPlugin;
 
@@ -26,12 +28,12 @@ impl Plugin for EditorPlugin {
         .add_event::<SaveFileEvent>()
         .add_event::<OpenFileEvent>()
         .add_event::<LoadAtlasEvent>()
-        .insert_resource(UiVars::default())
-        .insert_resource(LoadedAtlas {handle: Handle::default()})
+        .insert_resource(AtlasData::default())
         .add_systems(OnEnter(GameState::Editor), init_file_button)
         .add_systems(Update, (
-            update_tab, manage_file_window, new_file, interact_file, interact_new_file_tab, interact_open_file_tab,
-            interact_save_file_tab, dialog, save_open_file, interact_load_atlas_tab, update_atlas, load_atlas, 
+            manage_file_window, new_file, interact_file, interact_new_file_tab, interact_open_file_tab,
+            interact_save_file_tab, dialog, save_open_file, interact_load_atlas_tab, load_atlas, atlas_controller,
+            update_node_controller, 
         ).run_if(in_state(GameState::Editor)))
         ;
     }

@@ -48,6 +48,9 @@ pub struct Resizer {
     pub start_pos: f32,
 }
 
+#[derive(Component)]
+pub struct Atlas;
+
 #[derive(Event)]
 pub struct ResizeEvent {
     pub new_pos: f32,
@@ -78,20 +81,46 @@ pub struct RagdollSave {
 
 } // to be used
 
-#[derive(Resource)]
-pub struct UiVars {
+#[derive(Component)]
+pub struct Tile {
     pub title: String,
 }
 
-impl UiVars {
+impl Tile {
     pub fn default() -> Self {
-        UiVars { 
+        Tile { 
             title: "Jopa".to_owned()
         }
     }
 }
 
 #[derive(Resource)]
-pub struct LoadedAtlas {
-    pub handle: Handle<Image>,
+pub struct AtlasData {
+    pub scale: f32,
+    pub rect: Rect,
+    pub size: Vec2,
+    pub loaded: bool,
+    pub changed: bool,
+    pub image: Handle<Image>,
+    pub selected: Option<Entity>,
+    pub pos: Vec2, // pos is in the middle of the sprite
+    pub entity: Entity,
+    pub selections: Vec<(Rect, Vec2, Entity)>,
+}
+
+impl AtlasData {
+    pub fn default() -> Self {
+        AtlasData { 
+            scale: 1.,
+            loaded: false,
+            changed: false,
+            size: Vec2::ZERO,
+            rect: Rect::default(),
+            entity: Entity::PLACEHOLDER,
+            selections: vec![],
+            pos: Vec2::ZERO,
+            image: Handle::default(),
+            selected: None,
+        }
+    }
 }
