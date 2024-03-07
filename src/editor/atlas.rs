@@ -179,9 +179,9 @@ pub fn atlas_controller(
         }
         if mouse_button_input.pressed(MouseButton::Right) && vars.rect.contains(cursor_pos.pos) {
             // if moved or rescaled => :(
-            for (rect, _, entity) in vars.selections.iter() {
+            for (id, (rect, _, _)) in vars.selections.iter().enumerate() {
                 if rect.contains(cursor_pos.pos) {
-                    vars.selected = Some(*entity);
+                    vars.selected = Some(id);
                     break;
                 }
             }

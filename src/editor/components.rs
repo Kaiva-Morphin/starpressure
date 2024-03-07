@@ -102,7 +102,7 @@ pub struct AtlasData {
     pub loaded: bool,
     pub changed: bool,
     pub image: Handle<Image>,
-    pub selected: Option<Entity>,
+    pub selected: Option<usize>,
     pub pos: Vec2, // pos is in the middle of the sprite
     pub entity: Entity,
     pub selections: Vec<(Rect, Vec2, Entity)>,
