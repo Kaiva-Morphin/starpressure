@@ -1,7 +1,8 @@
 use bevy::prelude::*;
+use bevy_file_dialog::{DialogFileLoaded, DialogFileSaved};
 use bevy_rapier2d::prelude::*;
 
-use crate::ragdoll::systems::init_skeleton;
+use crate::{ragdoll::systems::init_skeleton, RagdollFileContents};
 
 use super::components::*;
 
@@ -184,4 +185,29 @@ pub fn new_file(
         init_skeleton(&mut commands, RigidBody::Fixed);
         // todo: if there is no current file
     }
+}
+
+pub fn save_open_file(
+    mut open_event: EventReader<DialogFileLoaded<RagdollFileContents>>,
+    mut save_event: EventReader<DialogFileSaved<RagdollFileContents>>,
+    mut load_event: EventReader<DialogFileLoaded<crate::AtlasFileContents>>,
+    mut atlas_data: ResMut<AtlasData>,
+) {
+    for contents in open_event.read() {
+        println!("{:?}", contents.path);
+    }
+    for contents in save_event.read() {
+        println!("saved {:?}", contents.path);
+        // this is for frontend
+        // todo: close the editor or sth.
+    }
+    for contents in load_event.read() {
+        atlas_data.name = contents.file_name.clone();
+    }
+}
+
+pub fn build_ragdoll(
+    mut commands: Commands,
+) {
+
 }

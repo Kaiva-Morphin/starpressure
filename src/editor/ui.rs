@@ -3,24 +3,27 @@ use bevy_egui::{egui, EguiContexts};
 
 use crate::components::WindowSize;
 
-use super::components::{AtlasData, Tile};
+use super::{components::{AtlasData, CursorAboveUi, RagdollTile}, {JointSelectionState, JointSelectionOver}};
 
 pub fn update_node_controller(
     mut commands: Commands,
     mut egui_context: EguiContexts,
     mut vars: ResMut<AtlasData>,
     window_size: Res<WindowSize>,
-    mut tile_q: Query<(&mut Tile, &mut Transform)>
+    mut tile_q: Query<(&mut RagdollTile, &mut Transform)>,
+    mut selection_state: ResMut<NextState<JointSelectionState>>,
+    mut selection_over_event: EventReader<JointSelectionOver>,
+    mut cursor_above_ui: EventWriter<CursorAboveUi>
 ) {
     if let Some(selected_id) = vars.selected {
         let texture = vars.image.clone();
         let scale = vars.scale.clone();
-        let max = vars.rect.max.x;
-        let may = vars.rect.max.y;
-        let (selected_rect, selected_pos, selected_entity) = &mut vars.selections[selected_id];
+        let lmax = vars.size.x;
+        let lmay = vars.size.y;
+        let selections = vars.selections.get_mut(&selected_id).unwrap();
         //let mut selected_rect = selected_rect.clone();
         let ctx = egui_context.ctx_mut();
-        let (mut tile, mut tile_transform) = tile_q.get_mut(*selected_entity).unwrap();
+        let (mut tile, mut tile_transform) = tile_q.get_mut(selections.entity).unwrap();
         let translation = &mut tile_transform.translation;
         let mut changed = false;
         egui::Window::new(&tile.title)
@@ -31,67 +34,113 @@ pub fn update_node_controller(
         .default_pos(egui::Pos2::new(window_size.width as f32, 0.))
         .id(egui::Id::new(666))
         .show(ctx, |ui|{
-            
             ui.add(egui::TextEdit::singleline(&mut tile.title).hint_text("Title"));
 
-            if ui.button("Add Joint").clicked() {
-
+            if ui.button("Add Joint").clicked() { // todo: set as inactive if is currently used
+                selection_state.set(JointSelectionState::Y)
             }
+            for _ in selection_over_event.read() { selection_state.set(JointSelectionState::N) }
+            
+            let mut dragged = false;
             
             ui.label("Tile position x");
-            ui.add(egui::DragValue::new(&mut translation.x).speed(0.06));
-            
-            ui.label("Tile position y");
-            ui.add(egui::DragValue::new(&mut translation.y).speed(0.06));
-            
-            ui.label("Tile position on atlas x");
-            let res = ui.add(egui::DragValue::new(&mut selected_pos.x).speed(0.06));
-            if res.changed() {
-                changed = true;
+            let res = ui.add(egui::DragValue::new(&mut translation.x).speed(0.06));
+            if !dragged {
+                dragged = res.dragged();
             }
-            
-            ui.label("Tile position on atlas y");
-            let res = ui.add(egui::DragValue::new(&mut selected_pos.y).speed(0.06));
+            ui.label("Tile position y");
+            let res = ui.add(egui::DragValue::new(&mut translation.y).speed(0.06));
+            if !dragged {
+                dragged = res.dragged();
+            }
+            ui.label("Tile position on atlas x");
+            let mut lposx = selections.lpos.x;
+            let res = ui.add(egui::DragValue::new(&mut lposx).speed(0.06));
+            if !dragged {
+                dragged = res.dragged();
+            }
             if res.changed() {
                 changed = true;
+                // update position
+                lposx = lposx.clamp(0., lmax - selections.ulrect.size().x);
+                let d = lposx - selections.lpos.x;
+                selections.lpos.x += d;
+                selections.gpos.x += d * scale;
+                // update rects
+                selections.ulrect.min.x += d;
+                selections.ulrect.max.x += d;
+                selections.sgrect.min.x += d; // todo: check scale?
+                selections.sgrect.max.x += d;
+            }
+
+            ui.label("Tile position on atlas y");
+            let mut lposy = selections.lpos.y;
+            let res = ui.add(egui::DragValue::new(&mut lposy).speed(0.06));
+            if !dragged {
+                dragged = res.dragged();
+            }
+            if res.changed() {
+                changed = true;
+                // update position
+                lposy = lposy.clamp(0., lmay - selections.ulrect.size().y);
+                let d = lposy - selections.lpos.y;
+                selections.lpos.y += d;
+                selections.gpos.y += d * scale;
+                // update rects
+                selections.ulrect.min.y += d;
+                selections.ulrect.max.y += d;
+                selections.sgrect.min.y += d;
+                selections.sgrect.max.y += d;
             }
             
             ui.label("Width");
-            let mut width = selected_rect.max.x;
+            let mut width = (selections.ulrect.max.x - selections.lpos.x).clamp(0., f32::MAX);
             let res = ui.add(egui::DragValue::new(&mut width).speed(0.06));
+            if !dragged {
+                dragged = res.dragged();
+            }
             if res.changed() {
                 changed = true;
-                width = width.clamp(selected_rect.min.x, max);
-                selected_pos.x += (width - selected_rect.max.x) / 2.;
-                selected_rect.max.x = width;
+                // update size
+                width = width.clamp(0., lmax);
+                let d = width - selections.ulrect.max.x; // clamp
+                //println!("lposx {}", selections.lpos.x);
+                //println!("d {}", d);
+                //println!("{:?}", selections.ulrect);
+                if d != 0. {
+                    // update rects
+                    selections.ulrect.max.x += d;
+                    selections.sgrect.max.x += d * scale;
+                }
             }
 
             ui.label("Height");
-            let mut height = selected_rect.max.y;
+            let mut height = selections.ulrect.max.y;
             let res = ui.add(egui::DragValue::new(&mut height).speed(0.06));
+            if !dragged {
+                dragged = res.dragged();
+            }
             if res.changed() {
                 changed = true;
-                height = height.clamp(selected_rect.min.y, may);
-                selected_pos.y += (height - selected_rect.max.y) / 2.;
-                selected_rect.max.y = height;
+                // update size
+                height = height.clamp(0., lmay);
+                let d = height - selections.ulrect.max.y;
+                // update rects
+                selections.ulrect.max.y += d;
+                selections.sgrect.max.y += d * scale;
+            }
+            if ui.ui_contains_pointer() || dragged {
+                cursor_above_ui.send(CursorAboveUi);
             }
         });
         if changed {
-            println!("{:?}", selected_rect);
-            let mut luregion = selected_rect.clone();
-            luregion.min /= scale;
-            luregion.max /= scale;
-            luregion = Rect::from_center_size(
-                *selected_pos,
-                Vec2::new(luregion.max.x - luregion.min.x, luregion.max.y - luregion.min.y)
-            );
-            println!("{:?}", luregion);
-            commands.entity(*selected_entity).insert(
+            commands.entity(selections.entity).insert(
                 SpriteBundle {
                     texture,
                     transform: Transform::from_xyz(0.,0.,0.,),
+                    // todo: may add offset here so it does not move when resized
                     sprite: Sprite {
-                        rect: Some(luregion),
+                        rect: Some(selections.ulrect),
                         ..default()
                     },
                     ..default()

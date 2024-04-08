@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::appstates::GameState;
 
 pub mod systems;
-mod components;
+pub mod components;
 mod interactions;
 mod ui;
 mod atlas;
@@ -14,8 +14,7 @@ use ui::*;
 use atlas::*;
 
 use self::components::{
-    AtlasData, FileOpenWindowEvent, LoadAtlasEvent, NewFileEvent, OpenFileEvent, ResizeEvent,
-    SaveFileEvent};
+    AtlasData, CursorAboveUi, FileOpenWindowEvent, JointSelectionOver, LoadAtlasEvent, NewFileEvent, OpenFileEvent, ResizeEvent, SaveFileEvent};
 
 pub struct EditorPlugin;
 
@@ -28,7 +27,10 @@ impl Plugin for EditorPlugin {
         .add_event::<SaveFileEvent>()
         .add_event::<OpenFileEvent>()
         .add_event::<LoadAtlasEvent>()
+        .add_event::<JointSelectionOver>()
+        .add_event::<CursorAboveUi>()
         .insert_resource(AtlasData::default())
+        .init_state::<JointSelectionState>()
         .add_systems(OnEnter(GameState::Editor), init_file_button)
         .add_systems(Update, (
             manage_file_window, new_file, interact_file, interact_new_file_tab, interact_open_file_tab,
@@ -37,4 +39,11 @@ impl Plugin for EditorPlugin {
         ).run_if(in_state(GameState::Editor)))
         ;
     }
+}
+
+#[derive(States, Debug, Clone, PartialEq, Eq, Hash, Default)]
+pub enum JointSelectionState {
+    #[default]
+    N,
+    Y,
 }
