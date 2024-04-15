@@ -3,7 +3,11 @@ use bevy_egui::egui::Shape;
 use bevy_rapier2d::prelude::*;
 use bevy::window::PrimaryWindow;
 
-use crate::{components::{Box, CursorEntity, CursorPosition, CursorWorldPosition, WindowSize}, ship::tiles::systems::{TILE_SIZE, TILE_SIZE_U32, TILE_SIZE_USIZE}};
+use crate::{
+    components::{Box, CursorEntity, CursorPosition, CursorWorldPosition, WindowSize},
+    consts::{ALL_COLLISION_GROUPS, WALLS_COLLISION_GROUP}, 
+    ship::rooms::{TILE_SIZE, TILE_SIZE_U32, TILE_SIZE_USIZE}
+};
 
 pub fn raycast(
     rapier_context: Res<RapierContext>,
@@ -153,7 +157,10 @@ pub fn spawn_floor(
         Collider::cuboid(200., 2.),
         TransformBundle::from(Transform::from_xyz(0., -90., 0.)),
         Name::new("floor"),
-        SolverGroups::new(Group::from_bits(0b0001).unwrap(), Group::from_bits(0b0001).unwrap())
+        SolverGroups::new(
+            Group::from_bits(WALLS_COLLISION_GROUP).unwrap(),
+            Group::from_bits(ALL_COLLISION_GROUPS).unwrap()
+        ),
     ));
 }
 

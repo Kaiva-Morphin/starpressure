@@ -4,11 +4,13 @@ use bevy_file_dialog::prelude::*;
 use bevy_rapier2d::prelude::*;
 //use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use components::{CursorEntity, CursorPosition, CursorWorldPosition, WindowSize};
+use constructor::ConstructorPlugin;
 use editor::EditorPlugin;
 use ragdoll::RagdollPlugin;
 use ship::ShipPlugin;
 
 mod ship;
+mod constructor;
 mod ragdoll;
 mod editor;
 mod appstates;
@@ -21,7 +23,7 @@ use systems::*;
 use world_inspector::WorldInspectorPlugin;
 
 struct RagdollFileContents;
-//struct ShipFileContents;
+struct ShipFileContents;
 struct AtlasFileContents;
 
 fn main() {
@@ -53,6 +55,8 @@ fn main() {
             FileDialogPlugin::new()
                 .with_save_file::<RagdollFileContents>()
                 .with_load_file::<RagdollFileContents>()
+                .with_save_file::<ShipFileContents>()
+                .with_load_file::<ShipFileContents>()
                 .with_load_file::<AtlasFileContents>(),
             ))
         .add_plugins(RapierDebugRenderPlugin::default())
@@ -61,6 +65,7 @@ fn main() {
             ShipPlugin,
             RagdollPlugin,
             EditorPlugin,
+            ConstructorPlugin,
         ))
         // systems
         .add_systems(Startup, set_window_size)

@@ -157,8 +157,8 @@ pub struct AtlasData {
     pub pos: Vec2, // pos is in the left bottom corner of the sprite
     pub entity: Entity,
     pub selections: HashMap<Entity, Selection>,
-    pub selected_joint1: Option<(Entity, Vec2)>,
-    pub selected_joint2: Option<(Entity, Vec2)>,
+    pub selected_joint1: Option<(Entity, Vec2, Vec2)>,
+    pub selected_joint2: Option<(Entity, Vec2, Vec2)>,
 }
 
 impl AtlasData {

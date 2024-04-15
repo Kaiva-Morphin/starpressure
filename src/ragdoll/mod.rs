@@ -16,7 +16,6 @@ impl Plugin for RagdollPlugin {
         .insert_resource(Name2Handle::new())
         .add_event::<RagdollSave>()
         .add_systems(Update, (load_ragdoll, ph))
-        //.add_systems(OnEnter(AppState::InGame), init_skeleton)
         ;
     }
 }

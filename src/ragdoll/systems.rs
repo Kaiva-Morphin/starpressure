@@ -3,20 +3,19 @@ use std::{collections::{HashMap, HashSet}, fs::File, io::Read};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{ragdoll::components::*};
+use crate::{consts::{RAGDOLLS_COLLISION_GROUP, WALLS_COLLISION_GROUP}, ragdoll::components::*};
 
 pub fn init_skeleton(
     commands: &mut Commands,
     rigid_body_type: RigidBody,
 ) {
-    let origin_halfs = Vec2::new(1.0, 1.0);
+    let origin_halfs = Vec2::new(10.0, 10.0);
     let origin_bone = commands.spawn((
         Name::new("origin"),
         VisibilityBundle::default(),
         rigid_body_type,
         Collider::cuboid(origin_halfs.x, origin_halfs.y),
         TransformBundle::from(Transform::from_xyz(0., 0., 0.)),
-        Velocity::zero(),
         Sleeping::disabled(),
         Bone {},
     ))
@@ -30,15 +29,14 @@ pub fn add_bone(
     offset: Vec2,
 ) {
     let joint = RevoluteJointBuilder::new()
-    .local_anchor1(Vec2::Y * 3.)
-    .local_anchor2(Vec2::Y * -3.);
+    .local_anchor1(Vec2::new(-10.0, -10.0))
+    .local_anchor2( Vec2::new(10.0, 10.0));
 
     commands.spawn(RigidBody::Dynamic)
     .insert((
         ImpulseJoint::new(parent, joint),
-        Collider::cuboid(2., 2.),
-        TransformBundle::from(Transform::from_xyz(5., 10., 0.)),
-        Velocity::zero(),
+        Collider::cuboid(5., 5.),
+        TransformBundle::from(Transform::from_xyz(100., 100., 0.)),
         Sleeping::disabled(),
         Bone {},
     ));
@@ -49,7 +47,7 @@ pub fn ph(
     mut ragdoll_save_event: EventWriter<RagdollSave>,
 ) {
     if keyboard_input.just_released(KeyCode::KeyL) {
-        ragdoll_save_event.send(load_ragdoll_save());
+        ragdoll_save_event.send(load_ragdoll_save("C:/Users/yaro4/Downloads/ragdoll.bin"));
     }
 }
 
@@ -70,11 +68,21 @@ pub fn load_ragdoll(
             // todo: can old entity duplicate new?
             // future child entity processing
             let parent_entity;
+            let collision_groups = CollisionGroups::new(
+                Group::from_bits(RAGDOLLS_COLLISION_GROUP).unwrap(),
+                Group::from_bits(WALLS_COLLISION_GROUP).unwrap()
+            );
+            let solver_groups = SolverGroups::new(
+                Group::from_bits(RAGDOLLS_COLLISION_GROUP).unwrap(),
+                Group::from_bits(WALLS_COLLISION_GROUP).unwrap()
+            );
             if let Some(new_child_entity) = map.get(&save.entity) {
                 let hs = save.ulrect.half_size();
                 parent_entity = commands.entity(*new_child_entity).insert((
                     Collider::cuboid(hs.x, hs.y),
-                    TransformBundle::from(Transform::from_translation(save.lpos.extend(0.))),   
+                    TransformBundle::from(Transform::from_translation(save.lpos.extend(0.))),
+                    //collision_groups,
+                    solver_groups,
                 )).id();
             } else {
                 // init first parent
@@ -91,13 +99,15 @@ pub fn load_ragdoll(
                         ..default()
                     },
                     Collider::cuboid(parent_hs.x, parent_hs.y),
+                    //collision_groups,
+                    solver_groups,
                 )).id();
             }
             // init children from joints:
             for (child_entity, joint) in save.joints.iter() {
                 let joint = RevoluteJointBuilder::new()
-                .local_anchor1(joint.origin1)
-                .local_anchor2(joint.origin2);
+                .local_anchor1(joint.origin1 + joint.hs)
+                .local_anchor2(joint.origin2 + joint.hs);
                 let new_child_entity = commands.spawn(RigidBody::Dynamic)
                 .insert((
                     SpriteBundle {
@@ -135,9 +145,8 @@ pub fn load_atlas(
 }
 
 pub fn load_ragdoll_save(
-
+    path: &str,
 ) -> RagdollSave {
-    let path = "C:/Users/yaro4/Downloads/ragdoll.bin";
     let mut file = File::open(path).unwrap();
     let mut buf = vec![];
     file.read_to_end(&mut buf).unwrap();

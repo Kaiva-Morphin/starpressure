@@ -94,7 +94,7 @@ pub fn update_node_controller(
             }
             
             ui.label("Width");
-            let mut width = (selections.ulrect.max.x - selections.lpos.x).clamp(0., f32::MAX);
+            let mut width = selections.ulrect.width();
             let res = ui.add(egui::DragValue::new(&mut width).speed(0.06));
             if !dragged {
                 dragged = res.dragged();
@@ -102,11 +102,8 @@ pub fn update_node_controller(
             if res.changed() {
                 changed = true;
                 // update size
-                width = width.clamp(0., lmax);
-                let d = width - selections.ulrect.max.x; // clamp
-                //println!("lposx {}", selections.lpos.x);
-                //println!("d {}", d);
-                //println!("{:?}", selections.ulrect);
+                width = width.clamp(0., lmax - selections.lpos.x);
+                let d = width - selections.ulrect.width();
                 if d != 0. {
                     // update rects
                     selections.ulrect.max.x += d;
@@ -115,7 +112,7 @@ pub fn update_node_controller(
             }
 
             ui.label("Height");
-            let mut height = selections.ulrect.max.y;
+            let mut height = selections.ulrect.height();
             let res = ui.add(egui::DragValue::new(&mut height).speed(0.06));
             if !dragged {
                 dragged = res.dragged();
@@ -123,13 +120,16 @@ pub fn update_node_controller(
             if res.changed() {
                 changed = true;
                 // update size
-                height = height.clamp(0., lmay);
-                let d = height - selections.ulrect.max.y;
+                height = height.clamp(0., lmay - selections.ulrect.height());
+                let d = height - selections.ulrect.height();
                 // update rects
                 selections.ulrect.max.y += d;
                 selections.sgrect.max.y += d * scale;
             }
             if ui.ui_contains_pointer() || dragged {
+                // todo: if pressed above ui, stop sending only in released
+                // or remove the event and replace with other logic
+                // main idea: if pressed on ui, ignore all other uis, while not released
                 cursor_above_ui.send(CursorAboveUi);
             }
         });
@@ -138,7 +138,6 @@ pub fn update_node_controller(
                 SpriteBundle {
                     texture,
                     transform: Transform::from_xyz(0.,0.,0.,),
-                    // todo: may add offset here so it does not move when resized
                     sprite: Sprite {
                         rect: Some(selections.ulrect),
                         ..default()

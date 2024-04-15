@@ -129,8 +129,8 @@ pub fn atlas_controller(
             
             let parent_gpos = selection.gpos;
             for (child_entity, joint) in selection.joints.iter() {
-                let parent_pos = parent_gpos + joint.origin1;
-                let child_pos = vars.selections[child_entity].gpos + joint.origin2;
+                let parent_pos = parent_gpos + joint.origin1 * vars.scale;
+                let child_pos = vars.selections[child_entity].gpos + joint.origin2 * vars.scale;
                 let direction = child_pos - parent_pos;
                 let length = direction.length();
                 let segment = Segment2d::new(Direction2d::new(direction / length).unwrap(), length);
@@ -195,6 +195,8 @@ pub fn atlas_controller(
                     lupos + luregion.half_size(),
                     Vec2::new(luregion.max.x - luregion.min.x, luregion.max.y - luregion.min.y)
                 );
+                println!("luregion {:?}", luregion);
+                // todo: luregion 2nd half problem?
                 let entity = commands.spawn((
                     SpriteBundle {
                         texture: vars.image.clone(),
@@ -219,16 +221,18 @@ pub fn atlas_controller(
         if mouse_button_input.just_released(MouseButton::Right) && vars.rect.contains(cursor_pos.pos) {
             let selected_joint1 = vars.selected_joint1;
             let mut selection_finished = false;
+            let scale = vars.scale;
             for (selection_entity, selection) in vars.selections.iter_mut() {
                 if selection.sgrect.contains(cursor_pos.pos) {
+                    println!("{:?}",  (cursor_pos.pos - selection.gpos) / scale - selection.ulrect.half_size());
                     match selection_state.get() {
                         JointSelectionState::Y => {
-                            let rel_cursor_pos = cursor_pos.pos - selection.gpos;
+                            let rel_cursor_pos = (cursor_pos.pos - selection.gpos) / scale;
                             if selected_joint1.is_none() {
-                                vars.selected_joint1 = Some((selection.entity, rel_cursor_pos));
+                                vars.selected_joint1 = Some((selection.entity, rel_cursor_pos, selection.ulrect.half_size()));
                             } else {
                                 if selection.entity != selected_joint1.unwrap().0 {
-                                    vars.selected_joint2 = Some((selection.entity, rel_cursor_pos));
+                                    vars.selected_joint2 = Some((selection.entity, rel_cursor_pos, selection.ulrect.half_size()));
                                     selection_finished = true;
                                 }
                             }
@@ -249,6 +253,7 @@ pub fn atlas_controller(
                     Joint {
                         origin1: joint1.1, // origin of parent joint
                         origin2: joint2.1, // origin of child joint
+                        hs: joint2.2, // child's hs
                     }
                 );
                 let child = vars.selections.get_mut(&joint2.0).unwrap();

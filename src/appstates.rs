@@ -13,6 +13,7 @@ pub enum GameState {
     #[default]
     Game,
     Editor,
+    Constructor,
 }
 
 pub fn menu_ph(
@@ -20,5 +21,5 @@ pub fn menu_ph(
     mut gamestate: ResMut<NextState<GameState>>,
 ) {
     appstate.set(AppState::InGame);
-    gamestate.set(GameState::Editor);
+    gamestate.set(GameState::Constructor);
 }

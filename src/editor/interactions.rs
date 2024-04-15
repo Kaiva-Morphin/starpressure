@@ -36,6 +36,8 @@ pub fn interact_file(
 pub fn interact_new_file_tab( // todo: optim every interact query
     mut new_file_button_q: Query<(&Interaction, &mut BackgroundColor, Entity, &mut NewFileButton), Changed<Interaction>>,
     mut new_file_event: EventWriter<NewFileEvent>,
+    mut file_event: EventWriter<FileOpenWindowEvent>,
+    mut button_q: Query<&mut FileButton>,
 ) {
     if let Ok((interaction, mut backgroundcolor, _, _))
     = new_file_button_q.get_single_mut() {
@@ -43,6 +45,8 @@ pub fn interact_new_file_tab( // todo: optim every interact query
             Interaction::Pressed => {
                 *backgroundcolor = HOVER_COLOR.into();
                 new_file_event.send(NewFileEvent {});
+                file_event.send(FileOpenWindowEvent { entity: Entity::PLACEHOLDER, to_open: false });
+                button_q.single_mut().is_opened = false;
             }
             Interaction::Hovered => {
                 *backgroundcolor = HOVER_COLOR.into();
@@ -57,6 +61,8 @@ pub fn interact_new_file_tab( // todo: optim every interact query
 pub fn interact_open_file_tab(
     mut open_file_button_q: Query<(&Interaction, &mut BackgroundColor, Entity, &mut OpenFileButton), Changed<Interaction>>,
     mut open_file_event: EventWriter<OpenFileEvent>,
+    mut file_event: EventWriter<FileOpenWindowEvent>,
+    mut button_q: Query<&mut FileButton>,
 ) {
     if let Ok((interaction, mut backgroundcolor, _, _))
     = open_file_button_q.get_single_mut() {
@@ -64,6 +70,8 @@ pub fn interact_open_file_tab(
             Interaction::Pressed => {
                 *backgroundcolor = HOVER_COLOR.into();
                 open_file_event.send(OpenFileEvent {});
+                file_event.send(FileOpenWindowEvent { entity: Entity::PLACEHOLDER, to_open: false });
+                button_q.single_mut().is_opened = false;
             }
             Interaction::Hovered => {
                 *backgroundcolor = HOVER_COLOR.into();
@@ -78,6 +86,8 @@ pub fn interact_open_file_tab(
 pub fn interact_save_file_tab(
     mut save_file_button_q: Query<(&Interaction, &mut BackgroundColor, Entity, &mut SaveFileButton), Changed<Interaction>>,
     mut save_file_event: EventWriter<SaveFileEvent>,
+    mut file_event: EventWriter<FileOpenWindowEvent>,
+    mut button_q: Query<&mut FileButton>,
 ) {
     if let Ok((interaction, mut backgroundcolor, _, _))
     = save_file_button_q.get_single_mut() {
@@ -85,6 +95,8 @@ pub fn interact_save_file_tab(
             Interaction::Pressed => {
                 *backgroundcolor = HOVER_COLOR.into();
                 save_file_event.send(SaveFileEvent {});
+                file_event.send(FileOpenWindowEvent { entity: Entity::PLACEHOLDER, to_open: false });
+                button_q.single_mut().is_opened = false;
             }
             Interaction::Hovered => {
                 *backgroundcolor = HOVER_COLOR.into();
@@ -99,6 +111,8 @@ pub fn interact_save_file_tab(
 pub fn interact_load_atlas_tab(
     mut save_file_button_q: Query<(&Interaction, &mut BackgroundColor, Entity, &mut LoadAtlasButton), Changed<Interaction>>,
     mut load_atlas_event: EventWriter<LoadAtlasEvent>,
+    mut file_event: EventWriter<FileOpenWindowEvent>,
+    mut button_q: Query<&mut FileButton>,
 ) {
     if let Ok((interaction, mut backgroundcolor, _, _))
     = save_file_button_q.get_single_mut() {
@@ -106,6 +120,8 @@ pub fn interact_load_atlas_tab(
             Interaction::Pressed => {
                 *backgroundcolor = HOVER_COLOR.into();
                 load_atlas_event.send(LoadAtlasEvent {});
+                file_event.send(FileOpenWindowEvent { entity: Entity::PLACEHOLDER, to_open: false });
+                button_q.single_mut().is_opened = false;
             }
             Interaction::Hovered => {
                 *backgroundcolor = HOVER_COLOR.into();

@@ -1,6 +1,7 @@
+use bevy::prelude::*;
 use serde::{Serialize, Deserialize};
 
-use crate::ship::tiles::components::{Tile, Wall};
+use crate::ship::components::{Tile, Wall};
 
 #[derive(Serialize, Deserialize)]
 pub struct RoomSave {
@@ -32,4 +33,10 @@ impl ShipSave {
             rooms,
         }
     }
+}
+
+#[derive(Event)]
+pub struct DrawBlueprint {
+    pub pos: Vec3,
+    pub rect: Rect,
 }

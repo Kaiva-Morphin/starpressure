@@ -1,14 +1,11 @@
 use bevy::prelude::*;
 
-pub mod tiles;
-mod constructor;
-mod components;
-mod systems;
+pub mod components;
+pub mod systems;
+pub mod rooms;
 
-use tiles::*;
+use rooms::*;
 use crate::appstates::AppState;
-
-use self::{constructor::systems::*, systems::*, tiles::systems::*};
 
 pub struct ShipPlugin;
 

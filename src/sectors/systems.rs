@@ -5,7 +5,7 @@ trait Parallelizable {
 }
 
 fn init_sector(
-
+    
 ) {
 
 }

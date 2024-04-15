@@ -1,8 +1,14 @@
 use bevy::prelude::*;
+use bevy_file_dialog::prelude::*;
 
-use crate::{components::CursorWorldPosition, ship::{components::PlayerShip, init_room, init_tile, init_wall, tiles::components::{Room, Tile, Wall, DEFAULT_D}}};
+use crate::{
+    components::CursorWorldPosition, consts::TILE_SIZE, editor::components::{OpenFileEvent, SaveFileEvent}, ship::{
+        components::{PlayerShip, Room, Tile, Wall, DEFAULT_D},
+        rooms::{init_room, init_tile, init_wall}
+    }, ShipFileContents
+};
 
-use super::components::{RoomSave, ShipSave};
+use super::{components::{DrawBlueprint, RoomSave, ShipSave}, ConstructorState};
 
 pub fn save_ship(
     ship_q: Query<&Children, With<PlayerShip>>,
@@ -102,5 +108,74 @@ pub fn place_tile(
         let selected_room_entity = ship[selected_room_id];
         let (room, children) = rooms_q.get(selected_room_entity).unwrap();
         
+    }
+}
+
+pub fn dialog(
+    mut commands: Commands,
+    mut open_file_event: EventReader<OpenFileEvent>,
+    mut save_file_event: EventReader<SaveFileEvent>,
+    asset_server: Res<Assets<Image>>,
+) {
+    // open
+    for _ in open_file_event.read() {
+        commands
+        .dialog()
+        .add_filter("Ragdoll Binary", &["bin"])
+        .load_file::<ShipFileContents>();
+    }
+    // save
+    /*for _ in save_file_event.read() {
+        commands
+        .dialog()
+        .add_filter("Ragdoll Binary", &["bin"])
+        .set_file_name("ragdoll.bin")
+        .save_file::<ShipFileContents>(bincode::serialize(&save).unwrap());
+    }*/
+}
+
+pub fn draw_blueprint(
+    mut commands: Commands,
+    asset_server: ResMut<AssetServer>,
+    mut draw_blueprint_event: EventReader<DrawBlueprint>,
+    mut blueprint_entity: Local<Option<Entity>>,
+) {
+    for blueprint in draw_blueprint_event.read() {
+        if let Some(entity) = *blueprint_entity {
+            commands.entity(entity).insert(Transform::from_translation(blueprint.pos));
+        } else {
+            let entity = commands.spawn(
+                SpriteBundle {
+                    texture: asset_server.load("a.png"),
+                    transform: Transform::from_translation(blueprint.pos),
+                    sprite: Sprite {
+                        rect: Some(blueprint.rect),
+                        ..default()
+                    },
+                    ..default()
+                },
+            ).id();
+            *blueprint_entity = Some(entity);
+        }
+    }
+}
+
+pub fn process_selection(
+    mouse_button: Res<ButtonInput<MouseButton>>,
+    cursor_pos: Res<CursorWorldPosition>,
+    constructor_state: Res<State<ConstructorState>>,
+    mut draw_blueprint_event: EventWriter<DrawBlueprint>,
+) {
+    let selected_wall = 0.;
+    match constructor_state.get() {
+        ConstructorState::Walls => {
+            draw_blueprint_event.send(DrawBlueprint { 
+                pos: (cursor_pos.pos.floor() / TILE_SIZE).extend(0.),
+                rect: Rect::from_corners(Vec2::ZERO, Vec2::new(20., 20.))
+            });
+        }
+        ConstructorState::Tiles => {
+
+        }
     }
 }

@@ -4,7 +4,7 @@ use crate::appstates::GameState;
 
 pub mod systems;
 pub mod components;
-mod interactions;
+pub mod interactions;
 mod ui;
 mod atlas;
 
@@ -17,7 +17,7 @@ use self::components::{
     AtlasData, CursorAboveUi, FileOpenWindowEvent, JointSelectionOver, LoadAtlasEvent, NewFileEvent, OpenFileEvent, ResizeEvent, SaveFileEvent};
 
 pub struct EditorPlugin;
-
+// todo: ON EXIT DELETE ALL RESOURCES!!!
 impl Plugin for EditorPlugin {
     fn build(&self, app: &mut App) {
         app

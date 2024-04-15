@@ -1,15 +1,11 @@
 use bevy::prelude::*;
+use bevy_egui::{egui, EguiContexts};
 use bevy_file_dialog::{DialogFileLoaded, DialogFileSaved};
-use bevy_rapier2d::prelude::*;
 
-use crate::{ragdoll::systems::init_skeleton, RagdollFileContents};
-
-use super::components::*;
-
-pub const MAIN_COLOR: Color = Color::rgb(24. / 255., 24. / 255., 24. / 255.);
-pub const SECONDARY_COLOR: Color = Color::rgb(41. / 255., 41. / 255., 41. / 255.);
-pub const HOVER_COLOR: Color = Color::rgb(82. / 255., 82. / 255., 82. / 255.);
-pub const TEXT_COLOR: Color = Color::rgb(200. / 255., 200. / 255., 200. / 255.);
+use crate::{editor::{
+    components::*,
+    systems::{HOVER_COLOR, MAIN_COLOR, SECONDARY_COLOR, TEXT_COLOR}
+}, ShipFileContents};
 
 pub fn init_file_button(
     mut commands: Commands,
@@ -76,7 +72,7 @@ pub fn manage_file_window(
 ) {
     for event in file_event.read() {
         if event.to_open {
-            let n_actions = 4.;
+            let n_actions = 3.;
             let top_entity = commands.spawn(NodeBundle {
                 style: Style {
                     width: Val::Percent(100.),
@@ -99,7 +95,7 @@ pub fn manage_file_window(
                 "New File".to_owned());
             commands.entity(child).insert(NewFileButton {});
             commands.entity(top_entity).add_child(child);
-            // open file button
+            // open ship button
             let child = spawn_file_tab_button(
                 &mut commands,
                 &asset_server,
@@ -108,7 +104,7 @@ pub fn manage_file_window(
                 "Open File".to_owned());
             commands.entity(child).insert(OpenFileButton {});
             commands.entity(top_entity).add_child(child);
-            // save file button
+            // save ship button
             let child = spawn_file_tab_button(
                 &mut commands,
                 &asset_server,
@@ -116,15 +112,6 @@ pub fn manage_file_window(
                 2.,
                 "Save File".to_owned());
             commands.entity(child).insert(SaveFileButton {});
-            commands.entity(top_entity).add_child(child);
-            // load atlas button
-            let child = spawn_file_tab_button(
-                &mut commands,
-                &asset_server,
-                n_actions,
-                3.,
-                "Load Atlas".to_owned());
-            commands.entity(child).insert(LoadAtlasButton {});
             commands.entity(top_entity).add_child(child);
 
             commands.entity(top_entity).insert(FileTab { top_entity });
@@ -182,16 +169,13 @@ pub fn new_file(
     mut new_event: EventReader<NewFileEvent>,
 ) {
     for _ in new_event.read() {
-        init_skeleton(&mut commands, RigidBody::Fixed);
         // todo: if there is no current file
     }
 }
 
 pub fn save_open_file(
-    mut open_event: EventReader<DialogFileLoaded<RagdollFileContents>>,
-    mut save_event: EventReader<DialogFileSaved<RagdollFileContents>>,
-    mut load_event: EventReader<DialogFileLoaded<crate::AtlasFileContents>>,
-    mut atlas_data: ResMut<AtlasData>,
+    mut open_event: EventReader<DialogFileLoaded<ShipFileContents>>,
+    mut save_event: EventReader<DialogFileSaved<ShipFileContents>>,
 ) {
     for contents in open_event.read() {
         println!("{:?}", contents.path);
@@ -200,8 +184,5 @@ pub fn save_open_file(
         println!("saved {:?}", contents.path);
         // this is for frontend
         // todo: close the editor or sth.
-    }
-    for contents in load_event.read() {
-        atlas_data.name = contents.file_name.clone();
     }
 }
