@@ -4,9 +4,8 @@ use bevy_rapier2d::prelude::*;
 use bevy::window::PrimaryWindow;
 
 use crate::{
-    components::{Box, CursorEntity, CursorPosition, CursorWorldPosition, WindowSize},
-    consts::{ALL_COLLISION_GROUPS, WALLS_COLLISION_GROUP}, 
-    ship::rooms::{TILE_SIZE, TILE_SIZE_U32, TILE_SIZE_USIZE}
+    components::{Box, CursorEntity, CursorPosition, CursorWorldPosition, Fonts, WindowSize},
+    consts::{ALL_COLLISION_GROUPS, TILE_SIZE, TILE_SIZE_USIZE, WALLS_COLLISION_GROUP}, 
 };
 
 pub fn raycast(
@@ -164,3 +163,10 @@ pub fn spawn_floor(
     ));
 }
 
+pub fn load_fonts(
+    asset_server: ResMut<AssetServer>,
+    mut fonts: ResMut<Fonts>
+) {
+    // todo: add check on load
+    fonts.data = asset_server.load("fonts/minecraft_font.ttf");
+}

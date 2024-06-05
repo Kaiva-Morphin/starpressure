@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::appstates::AppState;
+use crate::{appstates::AppState, game_core::components::Name2Handle};
 
 pub mod systems;
 pub mod components;

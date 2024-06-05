@@ -46,7 +46,7 @@ pub struct FileTab {
 }
 
 #[derive(Component)]
-pub struct Resizer {
+pub struct Resizer { // unused; todo: check unused
     pub was_pressed: bool,
     pub is_vertical: bool,
     pub start_pos: f32,

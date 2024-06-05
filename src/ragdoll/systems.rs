@@ -3,7 +3,7 @@ use std::{collections::{HashMap, HashSet}, fs::File, io::Read};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{consts::{RAGDOLLS_COLLISION_GROUP, WALLS_COLLISION_GROUP}, ragdoll::components::*};
+use crate::{consts::{RAGDOLLS_COLLISION_GROUP, WALLS_COLLISION_GROUP}, game_core::components::Name2Handle, ragdoll::components::*};
 
 pub fn init_skeleton(
     commands: &mut Commands,
@@ -106,8 +106,8 @@ pub fn load_ragdoll(
             // init children from joints:
             for (child_entity, joint) in save.joints.iter() {
                 let joint = RevoluteJointBuilder::new()
-                .local_anchor1(joint.origin1 + joint.hs)
-                .local_anchor2(joint.origin2 + joint.hs);
+                .local_anchor1(joint.origin1 - joint.origin2)
+                .local_anchor2(Vec2::splat(0.));
                 let new_child_entity = commands.spawn(RigidBody::Dynamic)
                 .insert((
                     SpriteBundle {

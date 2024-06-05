@@ -21,5 +21,5 @@ pub fn menu_ph(
     mut gamestate: ResMut<NextState<GameState>>,
 ) {
     appstate.set(AppState::InGame);
-    gamestate.set(GameState::Constructor);
+    gamestate.set(GameState::Editor);
 }

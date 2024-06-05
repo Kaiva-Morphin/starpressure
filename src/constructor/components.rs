@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
 use serde::{Serialize, Deserialize};
 
 use crate::ship::components::{Tile, Wall};
@@ -38,5 +38,48 @@ impl ShipSave {
 #[derive(Event)]
 pub struct DrawBlueprint {
     pub pos: Vec3,
+}
+
+#[derive(Resource)]
+pub struct PlaceData {
+    pub pos: IVec2,
+    pub destroy: Option<bool>,
+}
+
+#[derive(Resource)]
+pub struct Pos2Entity {
+    pub data: HashMap<IVec2, Entity>
+}
+
+#[derive(Component)]
+pub struct SelectionSquare {
+    pub handle: Handle<Image>,
     pub rect: Rect,
+}
+
+#[derive(Resource)]
+pub struct SelectedTile {
+    pub hadle: Option<Handle<Image>>,
+    pub rect: Rect,
+}
+
+#[derive(Component)]
+pub struct TilesButton;
+
+#[derive(Component)]
+pub struct WallsButton;
+
+#[derive(Resource)]
+pub struct TilesOrWalls {
+    pub is_tiles: bool,
+}
+
+#[derive(Component)]
+pub struct Tile4Save {
+    pub ipos: IVec2,
+}
+
+#[derive(Component)]
+pub struct Wall4Save {
+    pub ipos: IVec2,
 }

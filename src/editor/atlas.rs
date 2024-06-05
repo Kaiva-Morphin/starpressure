@@ -34,7 +34,6 @@ pub fn load_atlas(
     }
 }
 
-
 pub fn atlas_controller(
     mut commands: Commands,
     mut egui_context: EguiContexts,
@@ -69,7 +68,10 @@ pub fn atlas_controller(
         let mut initial_position = locals.3;
         let mut starter_settings = locals.4;
         let mut draw = locals.5;
-
+        
+        if mouse_button_input.just_released(MouseButton::Back) {
+            *selection_started = false;
+        }
         let ctx = egui_context.ctx_mut();
         egui::Window::new("Atlas Controller")
         .vscroll(true)

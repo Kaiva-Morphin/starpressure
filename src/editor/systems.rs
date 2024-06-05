@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_file_dialog::{DialogFileLoaded, DialogFileSaved};
 use bevy_rapier2d::prelude::*;
 
-use crate::{ragdoll::systems::init_skeleton, RagdollFileContents};
+use crate::{components::Fonts, ragdoll::systems::init_skeleton, RagdollFileContents};
 
 use super::components::*;
 
@@ -11,9 +11,23 @@ pub const SECONDARY_COLOR: Color = Color::rgb(41. / 255., 41. / 255., 41. / 255.
 pub const HOVER_COLOR: Color = Color::rgb(82. / 255., 82. / 255., 82. / 255.);
 pub const TEXT_COLOR: Color = Color::rgb(200. / 255., 200. / 255., 200. / 255.);
 
+pub fn load_resources(
+    mut commands: Commands
+) {
+    commands.insert_resource(AtlasData::default());
+
+}
+
+pub fn unload_resources(
+    mut commands: Commands
+) {
+    commands.remove_resource::<AtlasData>();
+}
+
 pub fn init_file_button(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
+    fonts: ResMut<Fonts>
 ) {
     commands
     .spawn(
@@ -73,8 +87,10 @@ pub fn manage_file_window(
     mut file_event: EventReader<FileOpenWindowEvent>,
     asset_server: Res<AssetServer>,
     file_tab_q: Query<&FileTab>,
+    fonts: ResMut<Fonts>
 ) {
     for event in file_event.read() {
+        let font = fonts.data.clone();
         if event.to_open {
             let n_actions = 4.;
             let top_entity = commands.spawn(NodeBundle {
@@ -96,7 +112,9 @@ pub fn manage_file_window(
                 &asset_server,
                 n_actions,
                 0.,
-                "New File".to_owned());
+                "New File".to_owned(),
+                font.clone()
+            );
             commands.entity(child).insert(NewFileButton {});
             commands.entity(top_entity).add_child(child);
             // open file button
@@ -105,7 +123,9 @@ pub fn manage_file_window(
                 &asset_server,
                 n_actions,
                 1.,
-                "Open File".to_owned());
+                "Open File".to_owned(),
+                font.clone()
+            );
             commands.entity(child).insert(OpenFileButton {});
             commands.entity(top_entity).add_child(child);
             // save file button
@@ -114,7 +134,9 @@ pub fn manage_file_window(
                 &asset_server,
                 n_actions,
                 2.,
-                "Save File".to_owned());
+                "Save File".to_owned(),
+                font.clone()
+            );
             commands.entity(child).insert(SaveFileButton {});
             commands.entity(top_entity).add_child(child);
             // load atlas button
@@ -123,7 +145,9 @@ pub fn manage_file_window(
                 &asset_server,
                 n_actions,
                 3.,
-                "Load Atlas".to_owned());
+                "Load Atlas".to_owned(),
+                font.clone()
+            );
             commands.entity(child).insert(LoadAtlasButton {});
             commands.entity(top_entity).add_child(child);
 
@@ -143,6 +167,7 @@ fn spawn_file_tab_button(
     n_actions: f32,
     order_num: f32,
     text: String,
+    font: Handle<Font>
 ) -> Entity {
     commands.spawn(
         ButtonBundle {

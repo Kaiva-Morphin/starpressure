@@ -24,3 +24,8 @@ pub struct WindowSize {
 
 #[derive(Component)]
 pub struct Box;
+
+#[derive(Resource)]
+pub struct Fonts {
+    pub data: Handle<Font>
+}

@@ -2,13 +2,10 @@ use std::{collections::HashSet, time::Instant};
 
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+use crate::consts::TILE_SIZE;
 use crate::ship::components::{PlayerShip, Ship};
 use crate::components::Box;
 use super::components::{BinMask, DensityMask, Depressurized, ForceMask, Neighbours, Room, Simulate, Tile, Wall, DEFAULT_D};
-
-pub const TILE_SIZE: f32 = 32.0; // in meters
-pub const TILE_SIZE_USIZE: usize = TILE_SIZE as usize;
-pub const TILE_SIZE_U32: u32 = TILE_SIZE as u32;
 
 pub fn init_room (
     commands: &mut Commands,
