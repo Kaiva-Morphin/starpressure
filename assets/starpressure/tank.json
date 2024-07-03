@@ -1,0 +1,16 @@
+[
+	{
+		"name": "Water Tank",
+		"tile_pixels": [8, 8],
+		"multitile_z_mask": [
+			[3, 3],
+			[2, 2],
+			[1, 1],
+			[0, 0]
+		],
+		"origin": [0, 3],
+		"reaction": "None",
+		"animation_time": [0.1, 0.1, 0.1, 0.1, 0.1],
+		"layout_offset": [0, 0]
+	}
+]

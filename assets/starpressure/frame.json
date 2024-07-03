@@ -1,0 +1,7 @@
+[
+	{
+		"name": "Frame",
+		"tile_pixels": [8, 8],
+		"reaction": "Auto4"
+	}
+]

@@ -1,0 +1,11 @@
+[
+	{
+		"name": "Big pipe",
+		"tile_pixels": [8, 8],
+		"multitile_z_mask": [
+			[0, 0],
+			[0, 0]
+		],
+		"reaction": "Auto4"
+	}
+]

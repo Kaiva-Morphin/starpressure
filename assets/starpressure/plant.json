@@ -1,0 +1,11 @@
+[
+	{
+		"name": "Plant",
+		"tile_pixels": [8, 8],
+		"multitile_z_mask": [
+			[1],
+			[0]
+		],
+		"origin": [0, 1]
+	}
+]

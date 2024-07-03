@@ -1,0 +1,9 @@
+[
+	{
+		"name": "Copper pipes with water",
+		"tile_pixels": [8, 8],
+		"reaction": "Auto4",
+		"variant_chance": [0.4, 0.3, 0.2, 0.1],
+		"animation_time": [0.1, 0.1]
+	}
+]

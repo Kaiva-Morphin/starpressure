@@ -1,0 +1,11 @@
+[
+	{
+		"name": "Lamp",
+		"tile_pixels": [8, 8],
+		"multitile_z_mask": [
+			[0],
+			[1]
+		],
+		"animation_time": [0.2, 0.2, 0.2, 0.2]
+	}
+]

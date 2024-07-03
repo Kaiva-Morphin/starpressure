@@ -1,0 +1,95 @@
+[
+	{
+		"name": "Frame ramp (nord, long west)",
+		"tile_pixels": [8, 8],
+		"multitile_z_mask": [[0, 0]],
+		"origin": [1, 0],
+		"layout_offset": [0, 0]
+	},
+	{
+		"name": "Frame ramp (south, long west)",
+		"tile_pixels": [8, 8],
+		"multitile_z_mask": [[0, 0]],
+		"origin": [1, 0],
+		"layout_offset": [2, 0]
+	},
+	{
+		"name": "Frame ramp (south, long east)",
+		"tile_pixels": [8, 8],
+		"multitile_z_mask": [[0, 0]],
+		"origin": [0, 0],
+		"layout_offset": [0, 1]
+	},
+	{
+		"name": "Frame ramp (nord, long east)",
+		"tile_pixels": [8, 8],
+		"multitile_z_mask": [[0, 0]],
+		"origin": [0, 0],
+		"layout_offset": [2, 1]
+	},
+	{
+		"name": "Frame ramp (nord, west)",
+		"tile_pixels": [8, 8],
+		"origin": [0, 0],
+		"layout_offset": [0, 2]
+	},
+	{
+		"name": "Frame ramp (south, west)",
+		"tile_pixels": [8, 8],
+		"origin": [0, 0],
+		"layout_offset": [1, 2]
+	},
+	{
+		"name": "Frame ramp (south, east)",
+		"tile_pixels": [8, 8],
+		"origin": [0, 0],
+		"layout_offset": [2, 2]
+	},
+	{
+		"name": "Frame ramp (nord, east)",
+		"tile_pixels": [8, 8],
+		"origin": [0, 0],
+		"layout_offset": [3, 2]
+	},
+	
+	{
+		"name": "Frame ramp (long nord, west)",
+		"tile_pixels": [8, 8],
+		"multitile_z_mask": [
+			[0], 
+			[0]
+		],
+		"origin": [0, 0],
+		"layout_offset": [0, 3]
+	},
+	{
+		"name": "Frame ramp (long south, west)",
+		"tile_pixels": [8, 8],
+		"multitile_z_mask": [
+			[0], 
+			[0]
+		],
+		"origin": [0, 1],
+		"layout_offset": [1, 3]
+	},
+	{
+		"name": "Frame ramp (south, long east)",
+		"tile_pixels": [8, 8],
+		"multitile_z_mask": [
+			[0], 
+			[0]
+		],
+		"origin": [0, 1],
+		"layout_offset": [2, 3]
+	},
+	{
+		"name": "Frame ramp (nord, long east)",
+		"tile_pixels": [8, 8],
+		"multitile_z_mask": [
+			[0], 
+			[0]
+		],
+		"origin": [0, 0],
+		"layout_offset": [3, 3]
+	}
+]

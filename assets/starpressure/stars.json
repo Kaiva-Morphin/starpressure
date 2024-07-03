@@ -1,0 +1,7 @@
+[
+	{
+		"name": "Stars pattern",
+		"tile_pixels": [8, 8],
+		"pattern_size": [2, 2]
+	}
+]

@@ -1,0 +1,10 @@
+[
+	{
+		"name": "Name",
+		"tile_pixels": [8, 8],
+		"origin": [0, 0],
+		"reaction": "None",
+		"variant_chance": [0.25, 0.25, 0.25, 0.25],
+		"animation_time": [1, 1],
+	}
+]
