@@ -11,9 +11,6 @@ use crate::core::tiles::tilemap;
 
 use super::tiles::{MultitileType, TileCollection, TileData, TileNeighborReaction};
 
-pub const PIXELS_PER_UNIT: f32 = 8.;
-
-
 
 
 
@@ -126,8 +123,6 @@ pub fn parse_tile(json: String, texture_atlases: &mut ResMut<Assets<TextureAtlas
                     rect = (uvec2(min_x.unwrap_or_default() as u32, first_encountered_y.unwrap_or_default() as u32), uvec2(max_x as u32, last_encountered_y as u32));
                     to_update_around = update.into_iter().collect();
                 }
-                info!("{:?}", to_update_around);
-                warn!("Rect: from {} to {}", rect.0, rect.1);
                 tile.to_update = to_update_around;
                 tile.neighbor_reaction = json_data.reaction.unwrap_or_default();
                 let (columns, rows) = match tile.neighbor_reaction {
@@ -146,15 +141,15 @@ pub fn parse_tile(json: String, texture_atlases: &mut ResMut<Assets<TextureAtlas
                     variants = chances.len();
                     tile.chances = chances;
                 }
-                let tile_size = vec2(json_data.tile_pixels.0 as f32, json_data.tile_pixels.1 as f32);
-                let offset: Option<Vec2> = if let Some(offset) = json_data.layout_offset {
-                    Some(vec2(offset.0 as f32, offset.1 as f32) * tile_size)
+                let tile_size = uvec2(json_data.tile_pixels.0 as u32, json_data.tile_pixels.1 as u32);
+                let offset: Option<UVec2> = if let Some(offset) = json_data.layout_offset {
+                    Some(uvec2(offset.0 as u32, offset.1 as u32) * tile_size)
                 } else {
                     None
                 };
 
                 let texture_atlas = TextureAtlasLayout::from_grid(
-                    tile_size, size.0 * columns * frames, size.1 * rows * variants, None, offset
+                    tile_size, (size.0 * columns * frames) as u32, (size.1 * rows * variants) as u32, None, offset
                 );
                 tile.main_layer_rect = rect;
                 tile.atlas_layouts = texture_atlases.add(texture_atlas);
@@ -199,7 +194,7 @@ pub fn parse_folder(
     let dir = fs::read_dir(path);
 
     if dir.is_err() {
-        println!("Warn! cant read dir {}!", path);
+        warn!("Warn! cant read dir {}!", path);
         return collection;
     }
     
@@ -214,20 +209,20 @@ pub fn parse_folder(
         let png_file = path.with_extension("png");
         let name = unwrap_or_continue!(path.file_name()).to_owned();
         if !png_file.exists(){
-            println!("Warn! png for {:?} doesnt exists!", name);
+            warn!(".png file for {:?} doesnt exists!", name);
             continue;
         }
 
         let file = fs::File::open(path);
         if file.is_err(){
-            println!("Warn! cant read {:?} file!", name);
+            warn!("Cant read {:?} file!", name);
             continue;
         }
         let mut file = file.unwrap();
         let mut contents = String::new();
         
         if let Err(_) = file.read_to_string(&mut contents){
-            println!("Warn! cant read to string from {:?} file!", name);
+            warn!("Cant read to string from {:?} file!", name);
             continue;
         }
         
@@ -245,10 +240,9 @@ pub fn parse_folder(
         let img: Handle<Image> = assets.load(png_file);
         let parsed = parse_tile(contents, &mut texture_atlases, img);
         if parsed.is_none(){
-            warn!("{:?} ERR!", name);
+            warn!("Cant parse{:?}", name);
             continue;
         }
-        info!("{:?} OK!", name);
         collection.append(&mut parsed.unwrap().into_iter().map(|v| -> Arc<TileData> {Arc::new(v)}).collect());
     }
     collection

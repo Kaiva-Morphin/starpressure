@@ -6,7 +6,7 @@ use bevy::{
 
 //use tiles::{PIXELS_PER_UNIT};
 
-use crate::{core::tiles::tilemap::{tile_grid::TileGrid, tiles::{TileCollection, TilesCollections}}, debug::diagnostics_screen::{self, plugin::ScreenDiagnostics}};
+use crate::core::tiles::tilemap::{tile_grid::TileGrid, tiles::{TileCollection, TilesCollections}};
 
 use super::tile_picker::{self, PickedTile};
 pub struct TilemapEditorPlugin;

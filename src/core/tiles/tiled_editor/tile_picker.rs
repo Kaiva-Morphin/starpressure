@@ -91,21 +91,16 @@ pub fn menu(
                             ui.with_layout(egui::Layout::left_to_right(Align::Min).with_main_wrap(true), |ui|{
                                 for (i, texture_id) in atlas.iter().enumerate(){
                                     if let Some(tile_data) = tile_atlas.get(i) {
-                                        let texture = unwrap_or_continue!(texture_assets.get(tile_data.image.clone()));
-                                        let layout = unwrap_or_continue!(atlas_layouts.get(tile_data.atlas_layouts.clone()));
+                                        let texture = unwrap_or_continue!(texture_assets.get(tile_data.image.id()));
+                                        let layout = unwrap_or_continue!(atlas_layouts.get(tile_data.atlas_layouts.id()));
                                         if layout.textures.is_empty(){continue;}
-
                                         let size = vec2(texture.width() as f32, texture.height() as f32);
                                         let r = ui.allocate_ui_with_layout(vec2(96., 96.), Layout::top_down(Align::Center), |ui|{
-                                            
                                             let w = if picked.0 == Some(tile_data.clone()) {1.} else {0.};
                                             let frame = Frame::default().stroke(Stroke::new(w, Color32::WHITE));
-                                            
                                             let texture_rect = layout.textures.get(tile_data.get_atlas_idx_from_neighborstate((0, 0), 0,  0, 0)).unwrap_or(&layout.textures[0]);
-                                            
-                                            let p1 = pos2(texture_rect.min.x, texture_rect.min.y);
-                                            let p2 = pos2(texture_rect.max.x, texture_rect.max.y);
-
+                                            let p1 = pos2(texture_rect.min.x as f32, texture_rect.min.y as f32);
+                                            let p2 = pos2(texture_rect.max.x as f32, texture_rect.max.y as f32);
                                             let tile_size = p2 - p1;
                                             let multitile_size = tile_data.size().as_vec2(); /*match tile_data.multitile.clone() {
                                                 MultitileType::Single => {vec2(1., 1.)}

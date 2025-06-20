@@ -307,12 +307,10 @@ impl TileGrid {
     
     /// pos is lu of tile!
     fn update_neighbor_tiles<'a>(&self, pos: &UVec2, tile: Arc<TileData>, mut tiles: &'a mut RefMut<Vec<Vec<Option<StoredTile>>>>, commands: &mut Commands){
-        info!("\tUpdating neighbor tiles for {} with origin in {}", pos, pos.as_ivec2() - tile.origin_offset.as_ivec2());
         // prevent multiple update multitiles
         let mut updated_origins = HashSet::new();
         for offset in tile.iter_to_update() {
             let neighbor_pos = pos.as_ivec2() + *offset;
-            info!("checkin {}({})", neighbor_pos, *offset);
             if !self.in_bounds_i(&neighbor_pos){continue}
             if let Some(stored_tile) = self.get_tile(tiles, &neighbor_pos.as_uvec2()){
                 // if tile is here
@@ -323,7 +321,6 @@ impl TileGrid {
                     if !stored_tile.tile_data.has_reaction() {continue;}
                     //updated
                     let neighbor_origin = neighbor_pos - stored_tile.origin_offset;
-                    info!("origin {}", neighbor_origin);
 
                     if !self.in_bounds_i(&neighbor_origin){continue}
                     let neighbor_origin = neighbor_origin.as_uvec2();
@@ -332,7 +329,6 @@ impl TileGrid {
                         if let Some(neigbor) = neighbor_origin_tile{
                             if neigbor.tile_data != tile {continue;}
                             if !neigbor.is_origin() {continue;}
-                            info!("update request send to {}", neighbor_origin);
                             self.update_neighbor(&neighbor_origin, &stored_tile.clone(), &mut tiles, commands);
                             updated_origins.insert(neighbor_origin);
                         }
@@ -394,7 +390,6 @@ impl TileGrid {
                 index: tile.tile_data.get_atlas_idx_from_neighborstate((relative.x as usize, relative.y as usize), state, variant, frame)
             }
         );
-        println!("{:?} UPDATED", pos);
     }
 
     fn get_state<'a>(&self, pos: &UVec2, tile: &Arc<TileData>, tiles: &'a RefMut<Vec<Vec<Option<StoredTile>>>>) -> usize{
@@ -424,7 +419,6 @@ impl TileGrid {
             if stored_tile.is_multitile(){
                     erased_tile = Some(stored_tile.tile_data.clone());
                     erased_tile_lu = stored_tile.origin_offset - stored_tile.tile_data.origin_offset.as_ivec2();
-                    println!("{}", erased_tile_lu);
                     for offset in stored_tile.iter_offsets_masked(){
                         to_erase.push(pos.as_ivec2() + offset - stored_tile.origin_offset);
                     }

@@ -7,8 +7,6 @@ use std::sync::Arc;
 
 use super::parser::parse_folder;
 
-pub const PIXELS_PER_UNIT: f32 = 8.;
-
 /* todo:
 Split to chunks
 Baking?
